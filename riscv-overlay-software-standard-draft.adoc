@@ -1,0 +1,300 @@
+= RISC-V Overlay “Software Standard Proposal”
+
+	Revision 0.1
+	October 18, 2020
+
+
+
+
+== Revision History
+
+[cols=",,,",options="Revision History",]
+|=============================================
+|Revision |Date |Contents |Author(s)
+|0.1 |Oct 07,2020 |Initial revision / Draft a|
+Ronen Haen
+
+Ofer Shinaar
+
+Craig Blackmore
+
+| | | |
+|=============================================
+
+:sectnums:
+:toc:
+
+Table of Contents
+
+link:#overview[1 Overview 1]
+
+link:#goals[2 Goals 1]
+
+link:#methods-requirements[3 Methods requirements 2]
+
+link:#run-time-engine[3.1 Run Time Engine 2]
+
+link:#general[3.1.1 General 2]
+
+link:#groups[3.1.2 Groups 2]
+
+link:#evict[3.1.3 Evict 2]
+
+link:#load[3.1.4 Load 2]
+
+link:#invoke[3.1.5 Invoke 3]
+
+link:#_Toc54535448[3.1.6 Platform/Framework Hooks 3]
+
+link:#rtos[3.1.7 RTOS 4]
+
+link:#toolchain[3.2 Toolchain 4]
+
+link:#compiler[3.2.1 Compiler 4]
+
+link:#_Toc54535452[3.2.2 Linker 4]
+
+link:#debugger[3.2.3 Debugger 5]
+
+List of Figures
+
+*No table of figures entries found.*
+
+List of Tables
+
+link:#instrumentation-interface-hooks[Instrumentation interface hooks]
+
+Reference Documents
+
+[cols=",,,",options="header",]
+|========================================
+|Item # |Document |Revision Used |Comment
+|1 | | |
+|========================================
+
+[[_Toc507430300]]**Abbreviations**
+
+[cols=",",options="header",]
+|===========================
+|Abbreviation |Description
+|SW |Software
+|HW |Hardware
+|MMU |Memory Management Unit
+|OS |Operation System
+|LRU |Least Recently Used
+|RT |RunTime or RealTime
+|R/O or RO |Read Only
+| |
+|===========================
+
+
+[[overview]]
+== Overview
+
+Physical memory is one of the most important resource in sw programing, since the program runs on it. Some embedded systems have limited memory resources and as a result the total code footprint is bigger than the available memory. To solve this problem, the program, needs to use a technique to load executable code on run time from virtual memory or to overrun executable code which is not needed anymore by the program.
+
+On OS driven systems a virtual memory is very commonly used, the OS will use HW MMU with direct mapping between virtual and the physical memory.
+
+There is another technique to be used for solving this paradigm without usage of HW. It called ‘software overlay”.
+
+The concept of arranging code in ‘code overlays’ is quite old but still valid these days to resolve the code size issue. For small embedded systems (like IoT) footprint and code size is critical. Those systems usually will not be driving by large OS (unix alike) and will not involve MMU.
+
+Overlay represents an overlay function/segment which by terms, will be loaded to heap area, and executed by the SW when been called. The overlay soultion emphasizes an advantage over HW, since the software controling what needs to be loaded and when.
+
+[[goals]]
+== Goals
+
+This document specifies the requirements for all the relative software entities, which are needed to participant in the implementation of the sw-overlay. We expected changes in the toolchain and on the RT code which is driving the loading and invoking the overlay calls. The following requirements will lay a base for everyone to implement their own RT Engine or toolchain or/and take just part of the tools and integrate it to their own design.
+
+The main goal of this standard is to make the software developer experience an easy and smooth one. From developer point-of-view the request will be to just tag (attribute) his designated overlay functions and the toolchain and the RT-Eng will take care of the rest.
+
+The implementation will be based on RISC-V ISA and RISC-V tools but can be adopted to other targets.
+
+[[methods-requirements]]
+== Methods requirements
+
+The following sections specify the requirements for:
+
+1.  Run Time Engine – SW module which is responsible for managing the overlay heap. This module is designated to be part of operational SW
+2.  Toolchain – broad collection of programming tools (e.g. compiler, linker, debugger, etc.) which needs to develop SW applications.
+
+[[run-time-engine]]
+=== Run Time Engine
+
+[[general]]
+==== General
+
+1.  Since software can be more flexible then HW, we should not use direct mapping approach for overlay. For a small allocated overlay heap we can mapped any amount of code.
+2.  Functions and const-data can be in overlay
+3.  Functions/Const-data will be encapsulate to `groups`, overlay group.
+4.  Engine will be aware of the functions in the group, and will be aware how to address them.
+5.  Engine will manage load/evict of groups by providing hooks to be impemented by platform.
+6.  Can run on a bare metal system or under RTOS. Engine should be aware of RTOS usage so it must be thread safe – any given thread can invoke overlay functions.
+7.  [line-through]*Engine will be responsible for handling memory fermentation*
+8.  [line-through]*Overlay function can be written in C/C++/ASM with one caveat: for ASM it is the function responsibility to manage prolog and epilogue per the RT Eng implementation.*
+
+[[groups]]
+==== Groups
+
+A ‘Group’ is a collection of overlay functions. We should use groups to minimize the necessity of loading/evicting a singular function from ram-heap.
+
+1.  Overlay group size can impact the RT Engine and the Toolchain so it must be selected pre-build
+2.  Overlay group size ranges from 512B – 4K for both functions and const-data.
+3.  Group size will be pre decided on build (link) time.
+4.  _Multi Group_ – a function symbol can be resident in N groups. +
+Example: foo(void) can be located in _Group~1~, Group~2~…, GroupN_
+
+[[evict]]
+==== Evict
+
+Evict of groups can be handled with similarity to HW cache concepts.
+
+1.  Evict resolution will be a `group`, meaning we can evict N groups per demand.
+2.  The Search-algorithm for determining whether a group is loaded or not shall be defined at compile time.
+3.  RT Eng will provide “group lock/free” API mechanism to prevent group from been evicted
+
+[[load]]
+==== Load
+
+The load area, “heap”, is been used for containing the loaded overlay groups. It should have its own memory section definition, so that the RT engine and the toolchain can work on the same section
+1.  Heap area should be defined pre-build
+2.	Heap should have range limitation to be in sync with the RT Engine and toolchain, that will be the minimum supported group size
+3.  We can have multiple Heaps to be controlled by signal/multiply RT Engine/s
+4.  A _Load-Function-Hook_ footnote:[Hooks implantation will be under platform responsibility since only the platform knows how to implement them. +
+Please referee to section *_3.1.6 Platform/Framework Hooks_*] will be provided to the user for executing the load operation itself
+
+[[invoke]]
+==== Invoke
+
+The RT Engine will be the entity to call the overlay function – invoke it.
+
+1.  The engine should support invoke indirect function calls (also known as function-pointers)
+2.  Search-algorithm is open to interpretation; we recommend to have at least one, for example LRU.
+3.  After function was loaded to heap, the RT-Eng will be responsible to pass all requested arguments from the root caller to the designated invocation.
++
+Therefor the RT-Eng will apply the ABI rules
+4.  Following RISCV psABI we should support #8 arguments
+
+[[platformframework-hooks]]
+==== [[_Ref53574618]][[_Toc54535448]]Platform/Framework Hooks
+
+Hooks implantation will be under platform responsibility since only the platform knows how to implement them. +
+RT Eng design may be based on platform resource, like “enter critical” section or maybe to leverage platform resources to increase performance in the engine. +
+For those the engine will need to expose API hooks to be provided by the platform/frame work.
+
+There are several types of hooks that need to be standardize so it can be used on any implementation:
+
+[[load-function-hook]]
+====== Load-Function-Hook
+
+
+A hook which will be trigger by the RT-Engine to request a load of group
+
+The API will need to provide information which is understood by the engine and the user, +
+AKA Overlay Static table (_link:#linker[Linker section: Overlay Static Table]_)
+
+Example:
+
+* Source: group location/referenced from the _‘Overlay Static Table’_
+* size of group
+* destination to load
+
+[[error-hook]]
+===== Error-Hook
+
+Error in the RT eng will call the Error-Hook
+
+[[instrumentation-interface-hooks]]
+===== Instrumentation interface hooks
+
+Instrumentation is needed for analysis, which can be used to improve the performance of overlay function calls.
+For example: user can catch a sequence of overlay-function-calls, from the instrumentation, and according to the result he can encapsulate the functions to a specific group.
+
+
+[cols="1%,30%,50%",options="header",]
+|======================================================================================================================
+| |Instrumentation name |Description
+|1.|Invoke callee + Load |Load overlay function and invoke it
+|2.|Invoke caller (return) + load |When returning to an overlay function, and re-loading of the ‘caller’ is needed
+|3.|Invoke callee + No load |The callee function is already loaded, we just need to invoke it
+|4.|Invoke caller (return) + No load |When returning from an overlay function and re-loading of the ‘caller’ is neededd
+|======================================================================================================================
+
+Table 1 - Instrumentation interface hooks
+
+[[rtos-hooks]]
+===== RTOS hooks
+
+On RTOS based system, the the RT-Eng will provide hooks to protect its critical sections. Those hooks will be implmentated by the user 
+
+[[rtos]]
+==== RTOS
+
+The RT Eng should support a system bare metal design and/or RTOS system design.
+
+1.	The implementation with/without RTOS should be a build time options. 
+2.	If RTOS is supported, the RT Eng should be “thread save” and not blocking other threads due to overlay operations.
+3.	Blocking can be acceptable for short critical section and only with inherent operations (e.g. mutex)
+4.  The RT-Eng should be agnostics to any specific RTOS, therefore hooks should be provided _(link:#rtos-hooks[RTOS hooks])_
+5.	Load operation should lock the designated memory region in the heap, to prevent a case were higher priority task will take the region from the current running task.
+
+[[toolchain]]
+=== Toolchain
+
+The toolchain; broad collection of programming tools (e.g. compiler, linker, debugger, and so forth...) is to be integrated with the overlay standard, as it impacts the native usage of overlay
+
+The compiler, the linker, and the debugger needs to support the mechanism in order for the user to use overlay functions and debugger them. Following are the module-requirements per tool
+
+[[compiler]]
+==== Compiler
+
+Main compiler demands are to be related on generating code which will generate a sequence to enter the RT Engine whenever the run code “hit” and overlay symbol, were its data or function.
+
+1.  Compiler needs to generate a code for any related overlay usage, the sequence will lead to entering to the RT Engine were it will manage the technique for loading, evicting, etc…
+2.  User will need to add a designated attribute to its target overlay function for the compiler to emits the designated sequence for example: ___attribute__((overlaycall))_
+3.  Types of related overlay use cases:
+a.  Direct call – just calling to the overlay function
+b.  Indirect call – call is via function pointer
+c.  Data – data which is marked as overlay should be reference with the same sequence to enter the RT Eng. so it can load/call it when needed
+4.  We probably need to allocate few core registers to be used only for the engine. Those registers should also be addressed by compiler and debugger. This way those registers forming a spec/handshake between compiler, RT code and debugger.
+5.  The compiler should pass a descriptor number to the RT Engine via the sequence. +
+The descriptor will be materialized on linking time
+6.  A related debug information should be aligned with the compiler overlay scheme.
+
+[[linker]]
+==== [[_Ref54010487]][[_Linker]][[_Toc54535452]]Linker
+
+1.  Overlay symbols cannot be referenced with memory address, since they are not part of the memory. Therefor we should have a descriptor to describing the overlay symbol, for example for which group it is related? etc ...
+2.  The linker will get all the necessary data from: objects, linker script and from a linker flag.
+3.  Shall create an overlay section for each symbol addressed in the object (user define on the code)
+4.  Groups are to be created and assigned to symbols on target-link time, as the linker have system visibility for all text and ro-data.
+5.  Shall have the ability to gather overlay groups for: Functions and R/O Data
+6.  There should be an _*overlay area*_ to holds all the groups in the project. This area is not for execution, it is for linker to treat overlay function as normal functions: address allocation, optimization etc…
+7.  Multi-group
+a.  Overlay function can be resident in more than one group
+b.  Overlay RO-Data can be resident in more than one group
+8.  Overlay Static Table
+a.  The linker shall create a symbol table to hold all the groups, index mapping for all overlay groups.
+b.  The linker will assign functions to groups per the designated table.
+c.  This table can be access by the FW on RT, or by another utility, to be used as a mapping to locate an overlay function.
+d.  Table shall be aligned to the _*overlay area*_ so it can have referenced by the FW or other utilities to find the requested group.
+
+* Note: This table is targeted to be a spec between the running code and the low level driver for loading the overlay function (per group). Since the table is part of the code, the developer can manage it, and the overlay groups/functions placement in the storage (storage refer to any back-end I/F that can fetch the code)
+
+1.  Overlay group size ranges from 512B – 4K for both functions and data
+2.  We shall have debug information for overlay functions, that information should be symmetric if function is placed in several groups.
+
+[[debugger]]
+==== Debugger
+
+Since our goal is to provide comfortable experience to the software developers we need to support it with good debugging options. Adding SW break points, doing set instructions, etc… are key features which debugger will need to address on an overlay system, where overlay functions can be mapped or unmapped (loaded/unloaded).
+
+1.  The debugger should give the overlay functions the same debugging capabilities as on none overlay function, like step, step-inst, skip, etc…
+2.  Debugger should hold a trace history (for call-stack) which includes the RT-Eng operations.
+3.  Overlay RT-Eng awareness:
+1.  To give comfortable experience we should have an option to “skip” the RT-Eng operations and move directly to the function. For example if doing” step-in” myOverlayfoo() we should see next PC in the beginning of myOverlayFo().
+2.  Likewise, we want to disable this “skip” option in case we want to debug the RT-Eng.
+3.  The same logic will happen if we want to return to an overlay function ().
+
+1.  The debugger will be agnostics to the existence of and RTOS, this means a context switch an happen in an overlay operation and the debugger should hold a valid sequence. This can be achieved by spec handshake between RT-Eng data base and the debugger
+2.  Changes in the debugger should be generic is such a way that all related “spec handshake” will be in external file to hook into the debugger
