@@ -1,6 +1,8 @@
 # RISC-V Software Overlay 
 
-     ![](overlay_cartoon.png)
+<p align="center">
+  <img src="overlay_cartoon.png" />
+</p>
  
 The repostority contains:
 - Draft proposal for the SW standard [RISC-V Overlay “Software Standard proposal"](riscv-overlay-software-standard-draft.adoc)
