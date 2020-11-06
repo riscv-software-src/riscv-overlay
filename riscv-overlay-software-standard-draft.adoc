@@ -52,17 +52,16 @@ link:#instrumentation-interface-hooks[Table 1 - Instrumentation interface hooks]
 [[_Toc507430300]]**Abbreviations**
 
 [cols=",",options="",]
-|===========================
-|Abbreviation |Description
-|SW |Software
-|HW |Hardware
-|MMU |Memory Management Unit
-|OS |Operation System
-|LRU |Least Recently Used
-|RT |RunTime or RealTime
-|R/O or RO |Read Only
-| |
-|===========================
+|===========================================
+| Abbreviation | Description
+| SW           | Software
+| HW           | Hardware
+| MMU          | Memory Management Unit
+| OS           | Operation System
+| LRU          | Least Recently Used
+| RT           | RunTime or RealTime
+| R/O or RO    | Read Only
+|===========================================
 
 {nbsp} +
 {nbsp} +
