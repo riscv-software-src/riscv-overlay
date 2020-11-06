@@ -70,7 +70,7 @@ link:#instrumentation-interface-hooks[Table 1 - Instrumentation interface hooks]
 [[overview]]
 == Overview
 
-Physical memory is one of the most important resource in sw programing, since the program runs on it. Some embedded systems have limited memory resources and as a result the total code footprint is bigger than the available memory. To solve this problem, the program, needs to use a technique to load executable code on run time from virtual memory or to overrun executable code which is not needed anymore by the program.
+Physical memory is one of the most important resource in software programing, since the program runs on it. Some embedded systems have limited memory resources and as a result the total code footprint is bigger than the available memory. To solve this problem, the program, needs to use a technique to load executable code on run time from virtual memory or to overrun executable code which is not needed anymore by the program.
 
 On OS driven systems a virtual memory is very commonly used, the OS will use HW MMU with direct mapping between virtual and the physical memory.
 
@@ -78,7 +78,7 @@ There is another technique to be used for solving this paradigm without usage of
 
 The concept of arranging code in ‘code overlays’ is quite old but still valid these days to resolve the code size issue. For small embedded systems (like IoT) footprint and code size is critical. Those systems usually will not be driving by large OS (unix alike) and will not involve MMU.
 
-Overlay represents an overlay function/segment which by terms, will be loaded to heap area, and executed by the SW when been called. The overlay soultion emphasizes an advantage over HW, since the software controling what needs to be loaded and when.
+Overlay represents an overlay function/segment which by terms, will be loaded to heap area, and executed by the SW when been called. The overlay soultion emphasizes an advantage over HW, since the SW controling what needs to be loaded and when.
 
 {nbsp} +
 {nbsp} +
@@ -86,9 +86,9 @@ Overlay represents an overlay function/segment which by terms, will be loaded to
 [[goals]]
 == Goals
 
-This document specifies the requirements for all the relative software entities, which are needed to participant in the implementation of the sw-overlay. We expected changes in the toolchain and on the RT code which is driving the loading and invoking the overlay calls. The following requirements will lay a base for everyone to implement their own RT-Engine or toolchain or/and take just part of the tools and integrate it to their own design.
+This document specifies the requirements for all the relative SW entities, which are needed to participant in the implementation of the SW overlay. We expected changes in the toolchain and on the RT code which is driving the loading and invoking the overlay calls. The following requirements will lay a base for everyone to implement their own RT-Engine or toolchain or/and take just part of the tools and integrate it to their own design.
 
-The main goal of this standard is to make the software developer experience an easy and smooth one. From developer point-of-view the request will be to just tag (attribute) his designated overlay functions and the toolchain and the RT-Engine will take care of the rest.
+The main goal of this standard is to make the SW developer experience an easy and smooth one. From developer point-of-view the request will be to just tag (attribute) his designated overlay functions and the toolchain and the RT-Engine will take care of the rest.
 
 The implementation will be based on RISC-V ISA and RISC-V tools but can be adopted to other targets.
 
@@ -109,7 +109,7 @@ The following sections specify the requirements for:
 [[general]]
 ==== General
 
-1.  Since software can be more flexible then HW, we should not use direct mapping approach for overlay. For a small allocated overlay heap we can mapped any amount of code.
+1.  Since SW can be more flexible then HW, we should not use direct mapping approach for overlay. For a small allocated overlay heap we can mapped any amount of code.
 2.  Functions and const-data can be in overlay
 3.  Functions/Const-data will be encapsulate to `groups`, overlay group.
 4.  Engine will be aware of the functions in the group, and will be aware how to address them.
@@ -282,7 +282,7 @@ d. Table shall be aligned with the *_"overlay area"_* so it can be referenced by
 9.  Overlay group size ranges from 512B – 4K for both functions and data
 
 
-NOTE: This table is targeted to be a spec between the running code and the low level driver for loading the overlay function (per group). Since the table is part of the code, the developer can manage it and allocated a placeholder for the overlay groups/functions in the storage for example (storage refers to any software I/F that can fetch the code).
+NOTE: This table is targeted to be a spec between the running code and the low level driver for loading the overlay function (per group). Since the table is part of the code, the developer can manage it and allocated a placeholder for the overlay groups/functions in the storage for example (storage refers to any SW I/F that can fetch the code).
 
 
 {nbsp} +
@@ -290,7 +290,7 @@ NOTE: This table is targeted to be a spec between the running code and the low l
 [[debugger]]
 ==== Debugger
 
-Since our goal is to provide comfortable experience to the software developers we need to support it with good debugging options. Adding SW break points, doing step-inst, etc… are key features which the debugger needs to address on an overlay system, where overlay functions can be mapped or unmapped (loaded/unloaded).
+Since our goal is to provide comfortable experience to the SW developers we need to support it with good debugging options. Adding SW break points, doing step-inst, etc… are key features which the debugger needs to address on an overlay system, where overlay functions can be mapped or unmapped (loaded/unloaded).
 
 .  The debugger should give the overlay functions the same debugging capabilities as on none overlay function, like step, step-inst, skip, etc…
 .  Debugger should hold a trace history (for call-stack) and include the RT-Engine calls as well.
