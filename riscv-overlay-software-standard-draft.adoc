@@ -70,15 +70,15 @@ link:#instrumentation-interface-hooks[Table 1 - Instrumentation interface hooks]
 [[overview]]
 == Overview
 
-Physical memory is one of the most important resource in software programing, since the program runs on it. Some embedded systems have limited memory resources and as a result the total code footprint is bigger than the available memory. To solve this problem, the program, needs to use a technique to load executable code on run time from virtual memory or to overrun executable code which is not needed anymore by the program.
+Physical memory is one of the most important resources in software programming, since the program runs on it. Some embedded systems have limited memory resources and as a result the total code footprint is often bigger than the available memory. To solve this problem, the program needs to use a technique to load executable code at runtime from virtual memory or to overwrite executable code that is not currently needed by the program.
 
-On OS driven systems a virtual memory is very commonly used, the OS will use HW MMU with direct mapping between virtual and the physical memory.
+On OS driven systems a virtual memory is very commonly used, the OS will use a HW MMU with direct mapping between virtual and the physical memory.
 
-There is another technique to be used for solving this paradigm without usage of HW. It called ‘software overlay”.
+There is another technique that can be used to realize this paradigm in software without the need for special hardware. It is called ‘software overlay”.
 
-The concept of arranging code in ‘code overlays’ is quite old but still valid these days to resolve the code size issue. For small embedded systems (like IoT) footprint and code size is critical. Those systems usually will not be driving by large OS (unix alike) and will not involve MMU.
+The concept of arranging code in ‘code overlays’ is quite old but still valid these days to resolve the code size issue. For small embedded systems (like IoT) footprint and code size is critical. Those systems usually will not be driven by a large OS (e.g. Unix) and will not include a MMU.
 
-Overlay represents an overlay function/segment which by terms, will be loaded to heap area, and executed by the SW when been called. The overlay soultion emphasizes an advantage over HW, since the SW controling what needs to be loaded and when.
+An overlay represents a function or read-only data that by some scheme will be loaded into heap area when the SW requires it (e.g. for a function call). The overlay solution offers an advantage over HW, since the SW controls what needs to be loaded and when.
 
 {nbsp} +
 {nbsp} +
