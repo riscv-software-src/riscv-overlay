@@ -86,11 +86,11 @@ An overlay represents a function or read-only data that by some scheme will be l
 [[goals]]
 == Goals
 
-This document specifies the requirements for all the relative SW entities, which are needed to participant in the implementation of the SW overlay. We expected changes in the toolchain and on the RT code which is driving the loading and invoking the overlay calls. The following requirements will lay a base for everyone to implement their own RT-Engine or toolchain or/and take just part of the tools and integrate it to their own design.
+This document specifies the requirements for all the relevant SW entities needed to implement SW overlays. We expect changes in the toolchain and a requirement for a RT-Engine that handles calls/returns involving overlay functions and loads overlay functions/data as needed. The following requirements will lay a base for everyone to implement their own RT-Engine or toolchain support and/or take just part of the tools and integrate it with their own design.
 
-The main goal of this standard is to make the SW developer experience an easy and smooth one. From developer point-of-view the request will be to just tag (attribute) his designated overlay functions and the toolchain and the RT-Engine will take care of the rest.
+The main goal of this standard is to make the SW developer experience an easy and smooth one. From the developer's point-of-view the request will be to just tag their designated overlay functions and overlay data with an attribute and the toolchain and RT-Engine will take care of the rest.
 
-The implementation will be based on RISC-V ISA and RISC-V tools but can be adopted to other targets.
+The implementation will be based on the RISC-V ISA and RISC-V tools but can be adopted to other targets.
 
 {nbsp} +
 {nbsp} +
