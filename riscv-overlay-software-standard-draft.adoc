@@ -231,72 +231,70 @@ The RT-Engine should support a system bare metal design and/or RTOS system desig
 [[toolchain]]
 === Toolchain
 
-The toolchain; broad collection of programming tools (e.g. compiler, linker, debugger, and so forth...) needs to be integrated with the overlay standard, as it impacts the native usage of overlay.
-The compiler, the linker, and the debugger needs to support overlay mechanism in order for the user, to use overlay functions and debug them. Following are the module-requirements per tool.
+The toolchain needs to be integrated with the overlay standard to support the usage of overlays.
+The compiler, linker and debugger all need to support the overlay mechanism in order for the user to use overlay functions and data and debug them. The following are the module-requirements per tool.
 
 {nbsp} +
 
 [[compiler]]
 ==== Compiler
 
-Main compiler demands are related to generating a sequence code to enter the RT-Engine whenever the running code “hit” an overlay symbol, which can be data usage or function call.
+The main compiler demands are related to generating a sequence code to enter the RT-Engine whenever the running code references an overlay symbol, which can be data usage or function call/return.
 
-1.  Compiler needs to generate code for any related overlay usage, the sequence will lead to entering to the RT-Engine were it will manage the process of loading, evicting, etc…
-2.  User will need to add a designated attribute to its target overlay function for the compiler to emits the designated sequence for example: "\___attribute___ (overlaycall)"
+1.  The compiler needs to generate code for any related overlay usage, the sequence will lead to entering to the RT-Engine which then manages the process of loading, evicting, etc…
+2.  The user will need to add a designated attribute to its target overlay function or data to make the compiler emit the designated sequence for example: "\___attribute___ (overlaycall)" or "\___attribute___ (overlaydata)"
 3.  Types of related overlay use cases:
 a.  Direct call – just calling to the overlay function
 b.  Indirect call – call is via function pointer
-c.  Data – data which is marked as overlay should be reference with the same sequence to enter the RT-Engine' so it can load/call it when needed
-4.  We probably need to allocate few core registers to be used only for the engine. Those registers should also be addressed by compiler and debugger. This way those registers forming a spec/handshake between compiler, RT code and debugger.
+c.  Data – data which is marked as overlay should be referenced with the same sequence to enter the RT-Engine so that the data can be loaded as necessary.
+4.  We probably need to reserve a few core registers to be used only for the RT-Engine. Those registers will have a special purpose understood by the compiler, linker, debugger and RT-Engine.
 +
-The toolchain will need to be rebuild with "awareness" that it can not use all the core registers.
-5.  The compiler should pass a descriptor/token to the RT-Engine via the 'entry' sequence. +
-The descriptor will be materialized at linking time.
-6.  A related debug information should be aligned with the compiler overlay scheme.
+Any library linked with an overlay enabled program must be built without using the reserved registers.
+5.  The compiler should pass a descriptor/token to the RT-Engine via an 'entry' sequence. +
+The descriptor will be materialized at link time.
+6.  Related debug information should be aligned with the compiler overlay scheme.
 
 {nbsp} +
 
 [[linker]]
 ==== Linker
 
-1.  Overlay symbols cannot be referenced with memory address, since they are not part of the physical memory. Therefor we should have a descriptor/token to describing the overlay symbol, for example for which group it is related, offset to the function? etc ...
-2.  The linker will get all the necessary data for overlay symbols from: objects, linker script and from a the linker input flags.
-3.  Shall create an overlay section for all overlay symbols in the program (user define it on the code it self, by the attribute).
-4.  Symbols are to be assigned to *Groups* on target-link time, as the linker have system visibility for all text and ro-data.
-5.  Shall have the ability to encapsulate functions and read-only data to overlay groups.
-6.  There should be an *_"overlay area"_* to holds all the groups in the program. This area is not for execution, it is for linker to treat overlay function as regular functions: address allocation, optimization etc…
+1.  Overlay symbols cannot be referenced by a memory address, since they are not part of the physical memory. Therefore we should have a descriptor/token to describe the overlay symbol (e.g. specifying the group to which it belongs and its offset within the group).
+2.  The linker will get all the necessary data for overlay symbols from: object files, the linker script and linker flags.
+3.  The linker shall create an overlay section for each overlay symbol that appears in an object file (as a result of attributes added by the user in the source code).
+4.  Each overlay symbol is assigned to one or more *Groups* at link time, as the linker has full visibility of all overlay symbols.
+5.  The linker shall have the ability to encapsulate functions and read-only data into overlay groups.
+6.  There should be an *_"overlay area"_* that holds all of the groups in the program. This area is not for execution, it is the area from which the RT-Engine will load overlay groups. The linker will perform relocations/relaxation on this area and debugging information is associated with the contents of this area.
 7.  Multi-group
 +
 The linker should deal with overlay symbols which can be resident in more then one group:
 
-a. Overlay function can be resident in more than one group
-b. Overlay read-only data can be resident in more than one group
+a. Overlay functions can be resident in more than one group.
+b. Overlay data can be resident in more than one group.
 
 8.  Overlay Static Table
-a. The linker shall create a group-offset-table to hold all the overlay-groups offsets, each entry index in the table represents and overlay group. Each entry content represent the a zero base offset of the group.
-b. Overlay group ID (numbers) assignment should be aligned with the table.
-c. This table can be access by the FW on RT, or by another utility, to be used as a mapping to locate an overlay group.
-d. Table shall be aligned with the *_"overlay area"_* so it can be referenced by the FW (e.g. for load operation), or other utilities, to find the requested group.
-9.  Overlay group size ranges from 512B – 4K for both functions and data
+a.  The linker shall create a group-offset-table to hold all the overlay group offsets. Each entry index in the table represents an overlay group ID. Each entry contents represent the zero base offset to the group.
+b.  Overlay group IDs are numerical.
+c.  This table can be read at runtime (e.g. by the RT-Engine, debugger or another utility) to provide a mapping to locate an overlay group.
+d.  This table shall provide sufficient information for the RT-Engine, debugger or other utilities to find the requested group within the *_"overlay area"_* (for example, so that the FW can find the locate and load a group).
+9.  Overlay group size ranges from 512B – 4K for both functions and data.
 
 
-NOTE: This table is targeted to be a spec between the running code and the low level driver for loading the overlay function (per group). Since the table is part of the code, the developer can manage it and allocated a placeholder for the overlay groups/functions in the storage for example (storage refers to any SW I/F that can fetch the code).
-
+-NOTE: This table is targeted to be a spec between the running code and the low level driver for loading the overlay function (per group). Since the table is part of the code, the developer can manage it and allocate a placeholder for the overlay groups/functions in the storage for example (storage refers to any SW I/F that can fetch the code).
 
 {nbsp} +
 
 [[debugger]]
 ==== Debugger
 
-Since our goal is to provide comfortable experience to the SW developers we need to support it with good debugging options. Adding SW break points, doing step-inst, etc… are key features which the debugger needs to address on an overlay system, where overlay functions can be mapped or unmapped (loaded/unloaded).
+Since our goal is to provide a comfortable experience for the SW developer we need support for key debugging features (such as breakpoints and backtracing) on an overlay system where overlay functions and data may be mapped or unmapped (loaded/unloaded).
 
-.  The debugger should give the overlay functions the same debugging capabilities as on none overlay function, like step, step-inst, skip, etc…
-.  Debugger should hold a trace history (for call-stack) and include the RT-Engine calls as well.
+.  The debugger should give the overlay functions the same debugging capabilities as a non-overlay function (e.g. step, step instruction, skip, backtracing etc…)
+.  For backtracing  the debugger should be unwind the stack with awareness of calls/returns through the RT-Engine.
 .  Overlay RT-Engine awareness:
-..  To give comfortable experience we should have an option to “skip” the RT-Engine operations and move directly to the function. E.g. if doing ”step-in” myOverlayfoo() we should see next PC in the beginning of myOverlayFo() and not in the RT-Engine'.
-..  Likewise, we want to disable this “skip” option in case we want to debug the RT-Engine.
-..  The same logic will happen if we want to return to an overlay function.
+..  To give a comfortable debugging experience we should have an option to “skip” through the RT-Engine when doing a step on a function call or return. E.g. if we step at call to function myOverlayFoo(), the debugger should skip through the RT-Engine and the next PC we see will be the beginning of myOverlayFoo() and not within the RT-Engine. Similarly, if we step at a function return, the debugger should skip through the RT-Engine and the next PC we see will be at the return address in the caller.
+..  There should also be an option to disable this “skip” functionality to allow debugging of the RT-Engine.
 
-.  The debugger will be agnostics to the existence of RTOS, this means a context switch can happen in during overlay operation and the debugger should hold a valid sequence. This can be achieved by "spec handshake" between RT-Engine data base and the debugger.
-.  Changes in the debugger should be generic in such a way that all related “spec handshake” will be in external file to hook into the debugger.
+.  The debugger will be agnostic to the existence of a RTOS, this means a context switch can happen during an overlay operation and the debugger should hold a valid sequence. This can be achieved by a "spec handshake" between the RT-Engine database and the debugger.
+.  Changes in the debugger should be generic in such a way that all related “spec handshake” will be in an external file to hook into the debugger.
 . We shall have debug information for overlay functions, that information should be symmetric if a function is placed in several groups (*_multi group_*).
