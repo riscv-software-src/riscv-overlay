@@ -69,11 +69,11 @@ link:#instrumentation-interface-hooks[Table 1 - Instrumentation interface hooks]
 [[overview]]
 == Overview
 
-Physical memory is one of the most important resources in software programming, since the program runs on it. Some embedded systems have limited memory resources and as a result the total code footprint is often bigger than the available memory. To solve this problem, the program needs to use a technique to load executable code at runtime from virtual memory or to overwrite executable code that is not currently needed by the program.
+Physical memory is one of the most important resources in SW programming, since the program runs on it. Some embedded systems have limited memory resources and as a result the total code footprint is often bigger than the available memory. To solve this problem, the program needs to use a technique to load executable code at runtime from virtual memory or to overwrite executable code that is not currently needed by the program.
 
 On OS driven systems a virtual memory is very commonly used, the OS will use a HW MMU with direct mapping between virtual and the physical memory.
 
-There is another technique that can be used to realize this paradigm in software without the need for special hardware. It is called ‘software overlay”.
+There is another technique that can be used to realize this paradigm in SW without the need for special HW. It is called ‘SW overlay”.
 
 The concept of arranging code in ‘code overlays’ is quite old but still valid these days to resolve the code size issue. For small embedded systems (like IoT) footprint and code size is critical. Those systems usually will not be driven by a large OS (e.g. Unix) and will not include a MMU.
 
@@ -108,12 +108,12 @@ The following sections specify the requirements for:
 [[general]]
 ==== General
 
-1.  Since SW can be more flexible then HW, we should not use a direct mapping approach for overlays. For a small allocated overlay heap we can map any amount of code (within limits).
+1.  Since SW can be more flexible then HW, we should not use a direct mapping approach for overlays. For a small allocated overlay heap we can map any amount of code.
 2.  Functions and read-only data can be in overlays.
 3.  Functions and read-only data will be assigned to one or more overlay `groups`.
 4.  The RT-Engine will be aware of the functions in the group and how to address them.
 5.  The RT-Engine will manage the loading/eviction of groups via hooks to be implemented by the platform.
-6.  The RT-Engine can run on a bare metal system or under a RTOS and therefore should be aware of RTOS usage to ensure it is thread safe, since any given thread can invoke overlay functions or use overlay data.
+6.  The RT-Engine can run on a bare metal system or under a RTOS and therefore should be aware of RTOS usage to ensure it is thread-safe, since any given thread can invoke overlay functions or use overlay data.
 
 {nbsp} +
 [[groups]]
@@ -220,7 +220,7 @@ On RTOS based system, the RT-Engine will provide hooks to protect its critical s
 The RT-Engine should support a system bare metal design and/or RTOS system design.
 
 1.	The implementation with/without RTOS should be a build time option.
-2.	If RTOS is supported, the RT-Engine should be thread safe and not block other threads due to overlay operations.
+2.	If RTOS is supported, the RT-Engine should be thread-safe and not block other threads due to overlay operations.
 3.	Blocking can be acceptable for short critical sections and only with inherent operations (e.g. mutex).
 4.	The RT-Engine should be agnostic to any specific RTOS, therefore hooks should be provided _(link:#rtos-hooks[RTOS hooks])_.
 5.	Load operations should lock the designated memory region in the heap, to prevent a case where a higher priority task will take the region from the current running task.
@@ -264,12 +264,12 @@ The descriptor will be materialized at link time.
 3.  The linker shall create an overlay section for each overlay symbol that appears in an object file (as a result of attributes added by the user in the source code).
 4.  Each overlay symbol is assigned to one or more *Groups* at link time, as the linker has full visibility of all overlay symbols.
 5.  The linker shall have the ability to encapsulate functions and read-only data into overlay groups.
-6.  There should be an *_"overlay area"_* that holds all of the groups in the program. This area is not for execution, it is the area from which the RT-Engine will load overlay groups. The linker will perform relocations/relaxation on this area and debugging information is associated with the contents of this area.
+6.  There should be an *_"overlay area"_* that holds all of the groups in the program. This area is not for execution, it is the area from which the RT-Engine will load overlay groups and it is also for the linker to treat overlay functions as regular functions (for address allocation, optimization etc…) and debugging information is associated with the contents of this area.
 7.  Multi-group
 +
 The linker should deal with overlay symbols which can be resident in more then one group:
 
-a. Overlay functions can be resident in more than one group.
+a. An overlay function can be resident in more than one group.
 b. Overlay data can be resident in more than one group.
 
 8.  Overlay Static Table
@@ -280,7 +280,7 @@ d.  This table shall provide sufficient information for the RT-Engine, debugger 
 9.  Overlay group size ranges from 512B – 4K for both functions and data.
 
 
--NOTE: This table is targeted to be a spec between the running code and the low level driver for loading the overlay function (per group). Since the table is part of the code, the developer can manage it and allocate a placeholder for the overlay groups/functions in the storage for example (storage refers to any SW I/F that can fetch the code).
+NOTE: This table is targeted to be a spec between the running code and the low level driver for loading the overlay function (per group). Since the table is part of the code, the developer can manage it and allocate a placeholder for the overlay groups/functions in the storage for example (storage refers to any SW I/F that can fetch the code).
 
 {nbsp} +
 
