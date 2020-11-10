@@ -59,7 +59,7 @@ link:#instrumentation-interface-hooks[Table 1 - Instrumentation interface hooks]
 |MMU          |Memory Management Unit
 |LRU          |Least Recently Used
 |OS           |Operation System
-|RT           |RunTime
+|RT           |Runtime
 |RT-Engine    |Runtime Engine
 |RTOS         |Real-Time Operating System
 |R/O or RO    |Read Only
@@ -124,9 +124,9 @@ The following sections specify the requirements for:
 A ‘Group’ is a collection of overlay functions and overlay data. We should use groups to minimize the necessity of loading/evicting a singular function from the overlay heap.
 
 1.  Overlay group size can impact the RT-Engine and the toolchain so it must be selected pre-build.
-2.  Overlay group size ranges from 512B – 4K for both functions and constant-data.
-3.  Group size will be decided in advance by the developer, and we will provided to at link-time.
-4.  Overlay function or data should not be bigger then the maximum group size. 
+2.  Overlay group size ranges from 512B – 4K for both functions and RO data.
+3.  Group size will be decided in advance by the developer, and we will be provided at link-time.
+4.  An overlay function or overlay data must not be bigger than the maximum group size.
 5.  _Multi Group_ – an overlay function or overlay data can be resident in N groups. +
 Example: foo(void) can be located in _Group~1~, Group~2~…, GroupN_
 
@@ -147,7 +147,7 @@ Group eviction can be handled with similarity to HW cache concepts.
 The load area, “heap”, contains loaded overlay groups. It should have its own memory section definition, so that the RT-Engine and the toolchain can work on the same section.
 
 1.  The heap area should be defined pre-build.
-2.  The heap should have range limitation to be in sync with the RT Engine and toolchain. The heap minimum size should not be the smaller then the maximum pre-defined overlay group size.
+2.  The heap should have range limitation to be in sync with the RT-Engine and toolchain. The heap minimum size should not be smaller than the maximum pre-defined overlay group size.
 3.  We can have multiple heaps to be controlled by a single/multiple RT-Engine(s).
 4.  A _Load-Function-Hook_ footnote:[Hook implementation will be the responsibility of the platform since only the platform knows how to implement them. +
 Please refer to section *_3.1.6 Platform/Framework Hooks_*] will be provided to the user for executing the load operation itself.
@@ -251,7 +251,7 @@ The main compiler demands are related to generating a sequence code to enter the
 a.  Direct call – just calling to the overlay function
 b.  Indirect call – call is via function pointer
 c.  Data – data which is marked as overlay should be referenced with the same sequence to enter the RT-Engine so that the data can be loaded as necessary.
-4.  We probably need to reserve a few core registers to be used only for the RT-Engine. Those registers will have a special purpose understood by the compiler, linker, debugger and RT-Engine. Moreover those registers forming a _RT-Eng-Debugger-handshake_ between compiler, RT code and debugger.
+4.  We probably need to reserve a few core registers to be used only for the RT-Engine. Those registers will have a special purpose understood by the compiler, linker, debugger and RT-Engine. Moreover those registers form a _RT-Eng-Debugger-handshake_ between compiler, RT code and debugger.
 +
 Any library linked with an overlay enabled program must be built without using the reserved registers.
 5.  The compiler should pass a descriptor/token to the RT-Engine via an 'entry' sequence. +
@@ -274,7 +274,7 @@ The descriptor will be materialized at link time.
 The linker should deal with overlay symbols which can be resident in more then one group:
 
 a. An overlay function can be resident in more than one group.
-b. An Overlay data can be resident in more than one group.
+b. Overlay data can be resident in more than one group.
 
 8.  Overlay Static Table
 a.  The linker shall create a group-offset-table to hold all the overlay group offsets. Each entry index in the table represents an overlay group ID. Each entry contents represent the zero base offset to the group.
@@ -294,10 +294,10 @@ NOTE: This table is targeted to be a spec between the running code and the low l
 Since our goal is to provide a comfortable experience for the SW developer we need support for key debugging features (such as breakpoints and backtracing) on an overlay system where overlay functions and data may be mapped or unmapped (loaded/unloaded).
 
 .  The debugger should give the overlay functions the same debugging capabilities as a non-overlay function (e.g. step, step instruction, skip, backtracing etc…)
-.  _RT-Eng-Debugger-handshake:_ The debugger and the RT-Eng will communicate during run-time.
-The information pass from the RT-Eng to the debugger will contain the status of the loaded/unloaded (mapped/unmapped) overlay groups.
+.  _RT-Eng-Debugger-handshake:_ The debugger and the RT-Engine will communicate during run-time.
+The information passed from the RT-Engine to the debugger will contain the status of the loaded/unloaded (mapped/unmapped) overlay groups.
 .  Overlay RT-Engine awareness:
-.  For backtracing the debugger should be unwind the stack with awareness of calls/returns through the RT-Engine.
+.  For backtracing, the debugger should be able to unwind the stack with awareness of calls/returns through the RT-Engine.
 ..  To give a comfortable debugging experience we should have an option to “skip” through the RT-Engine when doing a step on a function call or return. E.g. if we step at call to function myOverlayFoo(), the debugger should skip through the RT-Engine and the next PC we see will be the beginning of myOverlayFoo() and not within the RT-Engine. Similarly, if we step at a function return, the debugger should skip through the RT-Engine and the next PC we see will be at the return address in the caller.
 ..  There should also be an option to disable this “skip” functionality to allow debugging of the RT-Engine.
 
