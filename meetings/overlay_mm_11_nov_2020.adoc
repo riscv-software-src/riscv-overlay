@@ -1,0 +1,27 @@
+== General summary
+
+* We had the first introduction with the members that joined.
+* We talked about the charter and the goals for the task-group
+* We emphasize that we are in the time slot of gathering information for requirements so everything is opened to discussion.
+
+== Action items
+
+* We should emphasize on the goals that the chosen implementation will be open-sourced,
+both from RT-Engine and Toolchain (gcc and/or llvm)
+
+* We discussed if we wish to keep the *_evict_* section in the draft.
+Since evict is not impacting the "spec" between toolchain - RT-Eng - User Interface it may be related more to the implementation side.
+Therefore we will put this as a *_" recommendation"_*
+
+* Section 3.1.4\2 should state that the heap minimum size should be bigger or equal to the max pre-defined overlay group size
+
+== Open issue / Open discussion
+* Inputs from Michael E. the current concept is based on the relative between the "storage" and the "heap", can we
+think of a different approach of "altering" symbols on runtime so they won't be relative to the heap ?
+* The question related to how code that references absolute addresses could be handled whilst avoiding having to rewrite addresses at runtime.
+** Without seeing the use case, it is assumed that this relates to some code that jumps to or loads from an absolute address, but that absolute address is in an overlay.
+
+
+
+== Next
+* We will continue overviewing the draft, we stopped at section 3.1.5 Invoke
