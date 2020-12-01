@@ -1,0 +1,78 @@
+== General summary
+
+* We continue reviewing the draft, started from 3.1.5 Invoke
+* We stopped at linker, section 3.2.2\7
+
+== Action items
+
+* Move  3.1.5\2: *_The search-algorithm is open to interpretation; we recommend
+to have at least one, for example, LRU_*
+to 3.1.3 since it is related to *_Evict_*.
+
+* Section 3.1.5\4 we discussed if we want to restrict the implementation,
+toolchain and SW (RT-Engine), for supporting less or more then 8 registers.
+In favor of simplicity we should stick with the ABI, meaning save up to 8, and
+push to stack if needed more. We can re-open this to discussion on the design
+phase, if needed.
+
+
+* Section 3.1.6.4: need to make it clearer, and emphasize that the RTOS hooks are
+RTOS "porting/bsp", meaning they are not part of the kernel and gives easy
+integration interface to any RTOS.
+
+* Section 3.1.6.2: need to emphasize that *error hook is fatal*, the system can
+not recover from it.
+
+* We should increase the scope of 3.1.3, such that the RT-Engine will holds
+all the information regarding the allocated regions in the heap. Upon request
+the implementation can share it with the application.
+This is beneficial for example if the application wish to to use the RT-Engine
+as malloc/free of manager
+
+* Section 3.2.1\3\iii _Data_ : to change *Data* to *RO Data*
+
+* Section 3.2.1\4 we discussed if we want to provide toolchain build config
+and/or compile switch for the RT-Engine at compilation time so both of them will
+be sync on the usage and amount of reserved registers.
+After rethinking we think it will be better to simplify it: we should reserved
+N registers, per RISCV psABI we should reserved N temp registers (x28-x31,x5-7)
+
+Proposal:
+
+[cols="0,5a", width="80%"]
+|===
+| Register | Designation
+^|Xa|Holds the RT-Engine Entry point address
+^|Xb|Holds the overlay descriptor/token
+^|Xc|RT-Engine managing a pool of stack frames, the register will hold the
+pointer to this stack
+^|Xd|Holds the stack register for the RT-Engine
+|===
+
+
+* Section 3.2.2\2 need to add to linker flags:
+1. Input file:
+An external file that holds group numbers per function
+(this is for manual grouping). In this case, we need to add an appendix
+(or similar) to define the syntax of that file.
+2. max / min size of overlay group:
+User should reflect the max/min size of an overlay group (512, 4096, etc ...)
+
+== Open issue / Open discussion
+* Still pending:
+Inputs from Michael E. the current concept is based on the relative between the
+"storage" and the "heap", can we think of a different approach of "altering"
+symbols on runtime so they won't be relative to the heap ?
+
+* The question related to how code that references absolute addresses could be
+handled whilst avoiding having to rewrite addresses at runtime.
+
+** Without seeing the use case, it is assumed that this relates to some code
+ that jumps to or loads from an absolute address, but that absolute address
+ is in an overlay.
+
+
+
+== Next
+* We will continue over viewing the draft, we stopped at section 3.2.2\7 linker multi group
+_
