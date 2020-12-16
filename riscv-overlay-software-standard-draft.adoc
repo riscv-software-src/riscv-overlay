@@ -297,7 +297,7 @@ Since our goal is to provide a comfortable experience for the SW developer we ne
 .  _RT-Eng-Debugger-handshake:_ The debugger and the RT-Engine will communicate during run-time.
 The information passed from the RT-Engine to the debugger will contain the status of the loaded/unloaded (mapped/unmapped) overlay groups.
 .  Overlay RT-Engine awareness:
-.  For backtracing, the debugger should be able to unwind the stack with awareness of calls/returns through the RT-Engine.
+..  For backtracing, the debugger should be able to unwind the stack with awareness of calls/returns through the RT-Engine.
 ..  To give a comfortable debugging experience we should have an option to “skip” through the RT-Engine when doing a step on a function call or return. E.g. if we step at call to function myOverlayFoo(), the debugger should skip through the RT-Engine and the next PC we see will be the beginning of myOverlayFoo() and not within the RT-Engine. Similarly, if we step at a function return, the debugger should skip through the RT-Engine and the next PC we see will be at the return address in the caller.
 ..  There should also be an option to disable this “skip” functionality to allow debugging of the RT-Engine.
 
