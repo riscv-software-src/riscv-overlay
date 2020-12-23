@@ -1,0 +1,53 @@
+== General summary
+
+* Based on the organization request here are few changes
+** Calender will be maintained only on the Google calendar
+** Meeting Minutes will be promoted to the github. We will continue promoting
+them to Github and https://lists.riscv.org/g/tech-overlay until it will be
+closed
+
+* We requested that overlay-tg will be under *_toolchain & Runtime HSC_*,
+since overlay is more a runtime library/Runtime driving many changes to the
+toolchain while it is 100% agnostic to the *Platform*
+* We talked about the previous meeting and the decision to go with 4 allocated
+registers for the Runtime engine usage
+* We continue reviewing the draft, started from 3.2.2\7 linker section, and we
+completed the review and gathering all inputs
+
+== Action items
+
+* Section 2.2.3/7 - Multi group: to add that overlay-data is also part of the
+multi grouping
+* Fix indentation on 3.2.3\4 -> done!
+* We should elaborate more about elf sections we need to create to operate the
+overlay
+* Section 3.2.3.2 (debugger): elaborate more about sync points between the
+debugger and Runtime engine.
+
+NOTE: We mentioned that there are challenges in syncing the debugger and
+the Runtime engine. Those are part of the design/implementation stage
+and will be addressed on the next phase (design). However, we need to find
+common rules to be standardized. A handshake "spec" between
+the debugger and SW Engine, e.g Sync point and related generic building blocks.
+Those will help the debugger and SW implementation.
+
+
+== Open issue / Open discussion
+* Still pending:
+Inputs from Michael E. the current concept is based on the relative between the
+"storage" and the "heap", can we think of a different approach of "altering"
+symbols on runtime so they won't be relative to the heap ?
+
+* The question related to how code that references absolute addresses could be
+handled whilst avoiding having to rewrite addresses at runtime.
+
+** Without seeing the use case, it is assumed that this relates to some code
+ that jumps to or loads from an absolute address, but that absolute address
+ is in an overlay.
+
+
+
+== Next
+* Standard will be modified and we will start presenting the design stages.
+
+_
