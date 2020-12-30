@@ -1,7 +1,7 @@
 == General summary
 
 * Based on the organization request here are few changes
-** Calender will be maintained only on the Google calendar
+** Calendar will be maintained only on the Google calendar
 ** Meeting Minutes will be promoted to the github. We will continue promoting
 them to Github and https://lists.riscv.org/g/tech-overlay until it will be
 closed
@@ -16,7 +16,7 @@ completed the review and gathering all inputs
 
 == Action items
 
-* Section 2.2.3/7 - Multi group: to add that overlay-data is also part of the
+* Section 3.2.2/7 - Multi group: to add that overlay-data is also part of the
 multi grouping
 * Fix indentation on 3.2.3\4 -> done!
 * We should elaborate more about elf sections we need to create to operate the
