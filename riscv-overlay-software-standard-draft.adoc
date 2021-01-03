@@ -5,7 +5,7 @@
 :sectnumlevels: 5
 
 
-= RISC-V Overlay “Software Standard Proposal” Version 0.2-20210103
+= RISC-V Overlay “Software Standard Proposal” Version 0.1-draft-20201018
 
 [cols="0,5a", width="80%"]
 
@@ -36,7 +36,14 @@
 
 **List of Tables**
 
-link:#instrumentation-interface-hooks[Table 1 - Instrumentation interface hooks]
+link:#Instrumentation-interface-hooks[Table 1 - Instrumentation interface hooks]
+
+link:#Reserved-N-core-registers[Table 2 - Reserved N core registers]
+
+link:#RT-Engine-and-Debugger-sync-anchors[Table 3. RT-Engine and Debugger sync anchors]
+
+link:#Example-for-Grouping-file-CSV[Table 4. Example for Grouping file CSV]
+
 
 {nbsp} +
 {nbsp} +
@@ -276,7 +283,8 @@ Any library linked with an overlay enabled it to be compiled without using the r
 Per RISCV psABI we should reserve *N _temp registers_* (x28-x31,x5-x7)
 On new eABI we should reserve *N _saved registers_* (preferred last ones x16-x31)
 +
-.reserved N core registers
+[[Reserved-N-core-registers]]
+.Reserved N core registers
 [cols="0,5a"]
 |===
 | Register | Designation
@@ -348,6 +356,7 @@ The information passed from the RT-Engine to the debugger will contain the statu
 With those anchors, the debugger will be able to sync with RT-Engine logic-flow.
 Those anchors manifest by symbols and break-points: entering, exiting, data-base-sync-point.
 +
+[[RT-Engine-and-Debugger-sync-anchors]]
 .RT-Engine and Debugger sync anchors
 [%header,cols="7a,20a"]
 |===
@@ -375,6 +384,7 @@ This file should be in comma-separate-value syntax (CSV), as described:
 *	First column holds a function name
 *	Each next column holds a group number to assign the function
 
+[[Example-for-Grouping-file-CSV]]
 .Example for Grouping file CSV
 
 [%header, format=csv]
