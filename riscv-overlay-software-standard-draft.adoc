@@ -7,19 +7,19 @@
 
 = RISC-V Overlay “Software Standard Proposal” Version 0.1-draft-20201018
 
-
+[cols="0,5a", width="80%"]
 
 **Revision History**
 [cols="0,3a,10a,5a",options="header"]
 |=============================================
 |*_Revision_* |*_Date_* |*_Contents_* |*_Author(s)_*
-|0.1 |Oct 07,2020 |Initial revision / Draft a 
-|Ronen Haen 
+|0.1 |Oct 07,2020 |Initial revision / Draft a
+|Ronen Haen
  +
  Ofer Shinaar
  +
  Craig Blackmore
-|0.2 |Dec 30,2020 | Update changes gathered in the overlay-tg meetings 
+|0.2 |Dec 30,2020 | Update changes gathered in the overlay-tg meetings
 |Ofer shinaar
  +
  Craig Blackmore
@@ -223,16 +223,15 @@ For example: user can catch a sequence of overlay-function-calls, from the instr
 |======================================================================================================================
 
 
-[[RTOS-hooks]]
-===== RTOS hooks
+[[RTOS-hooks-and-porting]]
+===== RTOS hooks and porting
 
-On RTOS based system, there are two needed hooks: 1) Critical section hooks and 2) Porting\bsp hooks
+On RTOS based system, there are two needed hooks: 1) Critical section hooks and 2) Porting
 
 *_Critical section hooks_*: The RT-Engine will provide hooks to protect its critical sections. Those hooks will be implemented by the application based on the RTOS selection. e.g. application can provide mutex, semaphores or disable/enable interrupt logic
 
-*_Porting/BSP hooks_*: if the engine needs to modify the kernel it should give a hook to the application for implementation.
-Only the application knows which RTOS is been used and how to use it. The RT-Engine knows where to call this hook therefor the hook call will be
-published with the RTOS ????
+*_Porting_*: RTOS may need some overlay porting; in these cases, the engine implementation should encapsulate the porting as much as possible.
+e.g., context switch notification to the overlay RT-Engine
 
 
 {nbsp} +
@@ -278,7 +277,7 @@ Per RISCV psABI we should reserve *N _temp registers_* (x28-x31,x5-x7)
 On new eABI we should reserve *N _saved registers_* (preferred last ones x16-x31)
 +
 .reserved N core registers
-[cols="0,5a", width="80%"]
+[cols="0,5a"]
 |===
 | Register | Designation
 ^|Xa|Holds the RT-Engine Entry point address
@@ -286,7 +285,7 @@ On new eABI we should reserve *N _saved registers_* (preferred last ones x16-x31
 ^|Xc|RT-Engine managing a pool of stack frames, the register will hold the
 pointer to this stack
 ^|Xd|Holds the stack register for the RT-Engine
-^|Xe|*Only on RTOS support*: Holds the task/thread stack pointer
+^|Xe|*Only on RTOS support*: Holds RT-Engine dedicated stack-pointer, per task/thread.
 |===
 5.  The compiler should pass a descriptor/token to the RT-Engine via an 'entry' sequence. +
 The descriptor will be materialized at link time.
