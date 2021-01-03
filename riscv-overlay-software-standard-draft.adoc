@@ -5,7 +5,7 @@
 :sectnumlevels: 5
 
 
-= RISC-V Overlay “Software Standard Proposal” Version 0.1-draft-20201018
+= RISC-V Overlay “Software Standard Proposal” Version 0.2-20210103
 
 [cols="0,5a", width="80%"]
 
