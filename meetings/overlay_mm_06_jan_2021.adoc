@@ -1,0 +1,33 @@
+== General summary
+
+* Overlay standard draft v2 is under PR will be promoted soon
+* We started reviewing the HLD (high-level design)
+** Starting from FW usage and FW RT Engine HLD
+*** We stopped after covering the Multi-groups
+** Next will cover the HLD of the toolchain
+
+
+== Action items
+
+* Promote the first HLD draft
+* Merge the standard v2
+
+
+== Open issue / Open discussion
+* Still pending:
+Inputs from Michael E. the current concept is based on the relative between the
+"storage" and the "heap", can we think of a different approach of "altering"
+symbols on runtime so they won't be relative to the heap ?
+
+* The question related to how code that references absolute addresses could be
+handled whilst avoiding having to rewrite addresses at runtime.
+
+** Without seeing the use case, it is assumed that this relates to some code
+ that jumps to or loads from an absolute address, but that absolute address
+ is in an overlay.
+
+
+
+== Next
+* Continue with FW usage and FW RT Engine HLD
+_
