@@ -166,7 +166,7 @@ The load area, “heap”, contains loaded overlay groups. It should have its ow
 Please refer to section *_3.1.6 Platform/Framework Hooks_*] will be provided to the user for executing the load operation itself.
 5. The RT-Engine should hold all information regarding the heap. Which area is allocated/free, sizes, and address.
 6. Based on the given "heap information," the RT-Engine should provide a mechanism to lock segments in the heaps.
-7. The heap information should be acceptable to the application to get the status of the heap.
+7. The heap information should be acceptable by the application to get the status of the heap.
 
 NOTE: [5-7] This ability can give the application a way to allocate memory from the heap
 
@@ -279,7 +279,7 @@ c.  RO Data – read-only data which is marked as overlay should be referenced w
 4.  We need to reserve N core registers. To be used only for the RT-Engine.
 Those registers will have a special purpose understood by the compiler, linker, debugger, and RT-Engine.
 Moreover, those registers form a _RT-Eng-Debugger-handshake_ between compiler, RT code, and debugger.
-Any library linked with an overlay enabled it to be compiled without using the reserved registers.
+Any library linked with an overlay enabled application compiled without using the reserved registers.
 Per RISCV psABI we should reserve *N _temp registers_* (x28-x31,x5-x7)
 On new eABI we should reserve *N _saved registers_* (preferred last ones x16-x31)
 +
@@ -320,7 +320,7 @@ The linker should deal with overlay symbols which can be resident in more then o
 ..  The linker shall create a group-offset-table to hold all the overlay group offsets. Each entry index in the table represents an overlay group ID. Each entry contents represent the zero base offset to the group.
 ..  Overlay group IDs are numerical.
 ..  This table can be read at runtime (e.g. by the RT-Engine, debugger or another utility) to provide a mapping to locate an overlay group.
-..  This table shall provide sufficient information for the RT-Engine, debugger or other utilities to find the requested group within the *_"overlay area"_* (for example, so that the FW can find the locate and load a group).
+..  This table shall provide sufficient information for the RT-Engine, debugger or other utilities to find the requested group within the *_"overlay area"_* (for example, so that the FW can locate and load a group).
 .  Overlay group size ranges from 512B – 4K for both functions and data.
 
 NOTE: This table is targeted to be a spec between the running code and the low level driver for loading the overlay function (per group). Since the table is part of the code, the developer can manage it and allocate a placeholder for the overlay groups/functions in the storage for example (storage refers to any SW I/F that can fetch the code).
@@ -333,9 +333,9 @@ The linker will get all the necessary data for overlay symbols from: object file
 An external file holds "group numbers" per function name
 (this is for manual grouping). Appendix to file format  _(link:#Appendix-A-Grouping-file-syntax[Appendix A - Grouping file syntax])_.
 Without providing this file, the linker will generate a group per function
-... *Max / Min size of overaly group*
+... *Max / Min size of overlay group*
 +
-For the linker to be aware of the selected group size, the user should reflect
+For the linker to be aware of the selected group size, the user should specify
 the max/min size of an overlay group (512, 4096, etc ...)
 
 {nbsp} +
@@ -380,7 +380,7 @@ The linker can receive an input file to give it details about assignments of gro
 e.g. myFunction() should be in group 1.
 This file should be in comma-separate-value syntax (CSV), as described:
 
-*	Each new line represent a function
+*	Each new line represents a function
 *	First column holds a function name
 *	Each next column holds a group number to assign the function
 
