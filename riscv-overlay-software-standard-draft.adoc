@@ -166,7 +166,7 @@ The load area, “heap”, contains loaded overlay groups. It should have its ow
 Please refer to section *_3.1.6 Platform/Framework Hooks_*] will be provided to the user for executing the load operation itself.
 5. The RT-Engine should hold all information regarding the heap. Which area is allocated/free, sizes, and address.
 6. Based on the given "heap information," the RT-Engine should provide a mechanism to lock segments in the heaps.
-7. The heap information should be acceptable by the application to get the status of the heap.
+7. The heap information should be accessible by the application to get the status of the heap.
 
 NOTE: [5-7] This ability can give the application a way to allocate memory from the heap
 
@@ -177,11 +177,12 @@ NOTE: [5-7] This ability can give the application a way to allocate memory from 
 The RT-Engine will be the entity to invoke the overlay function.
 
 1.  The RT-Engine should support invoking indirect function calls (i.e. calls via function-pointers)
-3.  After a function is loaded to the heap, the RT-Engine will be responsible for passing all requested arguments from the root caller to the callee.
+2.  After a function is loaded to the heap, the RT-Engine will be responsible for passing all requested arguments from the root caller to the callee.
 +
 Therefore, the RT-Engine will apply the ABI rules.
-4.  We should follow the ABI in the matter of passing X numbers of arguments to callee. Per the current RISCV psABI the max numbers of registers to pass to callee is #8.
+3.  We should follow the ABI in the matter of passing X numbers of arguments to `callee`. Per the current RISCV psABI the max numbers of registers to pass to callee is #8.
 above that, all arguments will be pushed stack.
+4.  Return values to `caller` should also respect the psABI.
 
 {nbsp} +
 [[platformframework-hooks]]
@@ -279,7 +280,7 @@ c.  RO Data – read-only data which is marked as overlay should be referenced w
 4.  We need to reserve N core registers. To be used only for the RT-Engine.
 Those registers will have a special purpose understood by the compiler, linker, debugger, and RT-Engine.
 Moreover, those registers form a _RT-Eng-Debugger-handshake_ between compiler, RT code, and debugger.
-Any library linked with an overlay enabled application compiled without using the reserved registers.
+Any library linked with an application that uses overlay scheme must be compiled without using the reserved registers.
 Per RISCV psABI we should reserve *N _temp registers_* (x28-x31,x5-x7)
 On new eABI we should reserve *N _saved registers_* (preferred last ones x16-x31)
 +
