@@ -7,10 +7,10 @@
 
 = RISC-V Overlay “Software Standard Proposal” Version 0.1-draft-20201018
 
-
+[cols="0,5a", width="80%"]
 
 **Revision History**
-[cols=",,,",options="header",]
+[cols="0,3a,10a,5a",options="header"]
 |=============================================
 |*_Revision_* |*_Date_* |*_Contents_* |*_Author(s)_*
 |0.1 |Oct 07,2020 |Initial revision / Draft a
@@ -19,8 +19,10 @@
  Ofer Shinaar
  +
  Craig Blackmore
-
-| | | |
+|0.2 |Dec 30,2020 | Update changes gathered in the overlay-tg meetings
+|Ofer shinaar
+ +
+ Craig Blackmore
 |=============================================
 {nbsp} +
 {nbsp} +
@@ -34,7 +36,14 @@
 
 **List of Tables**
 
-link:#instrumentation-interface-hooks[Table 1 - Instrumentation interface hooks]
+link:#Instrumentation-interface-hooks[Table 1 - Instrumentation interface hooks]
+
+link:#Reserved-N-core-registers[Table 2 - Reserved N core registers]
+
+link:#RT-Engine-and-Debugger-sync-anchors[Table 3. RT-Engine and Debugger sync anchors]
+
+link:#Example-for-Grouping-file-CSV[Table 4. Example for Grouping file CSV]
+
 
 {nbsp} +
 {nbsp} +
@@ -91,7 +100,7 @@ This document specifies the requirements for all the relevant SW entities needed
 
 The main goal of this standard is to make the SW developer experience an easy and smooth one. From the developer's point-of-view the request will be to just tag their designated overlay functions and overlay data with an attribute and the toolchain and RT-Engine will take care of the rest.
 
-The implementation will be based on the RISC-V ISA and RISC-V tools but can be adopted to other targets.
+The implementation will be based on the RISC-V ISA and RISC-V tools but can be adapted to other targets. Moreover, the implementation will be open source, both for the RT-Engine and the selected toolchain.
 
 {nbsp} +
 {nbsp} +
@@ -131,39 +140,49 @@ A ‘Group’ is a collection of overlay functions and overlay data. We should u
 Example: foo(void) can be located in _Group~1~, Group~2~…, GroupN_
 
 {nbsp} +
-[[evict]]
+[[Evict]]
 ==== Evict
 
 Group eviction can be handled with similarity to HW cache concepts.
 
 1.  Eviction resolution will be at `group` granularity, meaning we can evict N groups per demand.
 2.  The search-algorithm for determining whether a group is loaded or not shall be defined at compile time.
-3.  The RT-Engine will provide a “group lock/free” API mechanism to prevent specific groups from being evicted.
+3.  The search-algorithm is open to interpretation; we recommend to have at least one, for example LRU.
+4.  The RT-Engine will provide a “group lock/free” API mechanism to prevent specific groups from being evicted.
+
+NOTE: This section is optional. But it is *_recommended_* to have it if the design requires eviction, due to heap space limitations.
 
 {nbsp} +
-[[load]]
+[[Load]]
 ==== Load
 
 The load area, “heap”, contains loaded overlay groups. It should have its own memory section definition, so that the RT-Engine and the toolchain can work on the same section.
 
 1.  The heap area should be defined pre-build.
-2.  The heap should have range limitation to be in sync with the RT-Engine and toolchain. The heap minimum size should not be smaller than the maximum pre-defined overlay group size.
+2.  The heap should have range limitation to be in sync with the RT-Engine and toolchain. The heap minimum size should be bigger or equal to the maximum pre-defined overlay group size.
+(*_heap-min-size >= max group size_*)
 3.  We can have multiple heaps to be controlled by a single/multiple RT-Engine(s).
 4.  A _Load-Function-Hook_ footnote:[Hook implementation will be the responsibility of the platform since only the platform knows how to implement them. +
 Please refer to section *_3.1.6 Platform/Framework Hooks_*] will be provided to the user for executing the load operation itself.
+5. The RT-Engine should hold all information regarding the heap. Which area is allocated/free, sizes, and address.
+6. Based on the given "heap information," the RT-Engine should provide a mechanism to lock segments in the heaps.
+7. The heap information should be accessible by the application to get the status of the heap.
+
+NOTE: [5-7] This ability can give the application a way to allocate memory from the heap
 
 {nbsp} +
-[[invoke]]
+[[Invoke]]
 ==== Invoke
 
 The RT-Engine will be the entity to invoke the overlay function.
 
 1.  The RT-Engine should support invoking indirect function calls (i.e. calls via function-pointers)
-2.  The search-algorithm is open to interpretation; we recommend to have at least one, for example LRU.
-3.  After a function is loaded to the heap, the RT-Engine will be responsible for passing all requested arguments from the root caller to the callee.
+2.  After a function is loaded to the heap, the RT-Engine will be responsible for passing all requested arguments from the root caller to the callee.
 +
 Therefore, the RT-Engine will apply the ABI rules.
-4.  Following the RISCV psABI, we should support #8 argument registers.
+3.  We should follow the ABI in the matter of passing X numbers of arguments to `callee`. Per the current RISCV psABI the max numbers of registers to pass to callee is #8.
+above that, all arguments will be pushed stack.
+4.  Return values to `caller` should also respect the psABI.
 
 {nbsp} +
 [[platformframework-hooks]]
@@ -193,8 +212,9 @@ Example:
 ===== Error-Hook
 
 On encountering an error, the RT-Engine will call the Error-Hook.
+Error hook is *fatal* the system can not recover from it.
 
-[[instrumentation-interface-hooks]]
+[[Instrumentation-interface-hooks]]
 ===== Instrumentation interface hooks
 
 Instrumentation is needed for analysis, which can be used to improve the performance of overlay function calls.
@@ -211,14 +231,20 @@ For example: user can catch a sequence of overlay-function-calls, from the instr
 |======================================================================================================================
 
 
-[[rtos-hooks]]
-===== RTOS hooks
+[[RTOS-hooks-and-porting]]
+===== RTOS hooks and porting
 
-On RTOS based system, the RT-Engine will provide hooks to protect its critical sections. Those hooks will be implemented by the user.
+On RTOS based system, there are two needed hooks: 1) Critical section hooks and 2) Porting
+
+*_Critical section hooks_*: The RT-Engine will provide hooks to protect its critical sections. Those hooks will be implemented by the application based on the RTOS selection. e.g. application can provide mutex, semaphores or disable/enable interrupt logic
+
+*_Porting_*: RTOS may need some overlay porting; in these cases, the engine implementation should encapsulate the porting as much as possible.
+e.g., context switch notification to the overlay RT-Engine
+
 
 {nbsp} +
 
-[[rtos]]
+[[RTOS]]
 ==== RTOS
 
 The RT-Engine should support a system bare metal design and/or RTOS system design.
@@ -226,13 +252,13 @@ The RT-Engine should support a system bare metal design and/or RTOS system desig
 1.  The implementation with/without RTOS should be a compile-time option.
 2.  If RTOS is supported, the RT-Engine should be thread-safe and not block other threads due to overlay operations.
 3.  Blocking can be acceptable for short critical sections and only with inherent operations (e.g. mutex).
-4.  The RT-Engine should be agnostic to any specific RTOS, therefore hooks should be provided _(link:#rtos-hooks[RTOS hooks])_.
+4.  The RT-Engine should be agnostic to any specific RTOS, therefore hooks should be provided _(link:#RTOS-hooks[RTOS hooks])_.
 5.  Load operations should lock the designated memory region in the heap, to prevent a case where a higher priority task will take the region from the current running task.
 
 {nbsp} +
 {nbsp} +
 
-[[toolchain]]
+[[Toolchain]]
 === Toolchain
 
 The toolchain needs to be integrated with the overlay standard to support the usage of overlays.
@@ -240,7 +266,7 @@ The compiler, linker and debugger all need to support the overlay mechanism in o
 
 {nbsp} +
 
-[[compiler]]
+[[Compiler]]
 ==== Compiler
 
 The main compiler demands are related to generating a sequence code to enter the RT-Engine whenever the running code references an overlay symbol, which can be data usage or function call/return.
@@ -250,10 +276,26 @@ The main compiler demands are related to generating a sequence code to enter the
 3.  Types of related overlay use cases:
 a.  Direct call – just calling to the overlay function
 b.  Indirect call – call is via function pointer
-c.  Data – data which is marked as overlay should be referenced with the same sequence to enter the RT-Engine so that the data can be loaded as necessary.
-4.  We probably need to reserve a few core registers to be used only for the RT-Engine. Those registers will have a special purpose understood by the compiler, linker, debugger and RT-Engine. Moreover those registers form a _RT-Eng-Debugger-handshake_ between compiler, RT code and debugger.
+c.  RO Data – read-only data which is marked as overlay should be referenced with the same sequence to enter the RT-Engine so that the data can be loaded as necessary.
+4.  We need to reserve N core registers. To be used only for the RT-Engine.
+Those registers will have a special purpose understood by the compiler, linker, debugger, and RT-Engine.
+Moreover, those registers form a _RT-Eng-Debugger-handshake_ between compiler, RT code, and debugger.
+Any library linked with an application that uses overlay scheme must be compiled without using the reserved registers.
+Per RISCV psABI we should reserve *N _temp registers_* (x28-x31,x5-x7)
+On new eABI we should reserve *N _saved registers_* (preferred last ones x16-x31)
 +
-Any library linked with an overlay enabled program must be built without using the reserved registers.
+[[Reserved-N-core-registers]]
+.Reserved N core registers
+[cols="0,5a"]
+|===
+| Register | Designation
+^|Xa|Holds the RT-Engine Entry point address
+^|Xb|Holds the overlay descriptor/token
+^|Xc|RT-Engine managing a pool of stack frames, the register will hold the
+pointer to this stack
+^|Xd|Holds the stack register for the RT-Engine
+^|Xe|*Only on RTOS support*: Holds RT-Engine dedicated stack-pointer, per task/thread.
+|===
 5.  The compiler should pass a descriptor/token to the RT-Engine via an 'entry' sequence. +
 The descriptor will be materialized at link time.
 6.  Related debug information should be aligned with the compiler overlay scheme.
@@ -263,28 +305,39 @@ The descriptor will be materialized at link time.
 [[linker]]
 ==== Linker
 
-1.  Overlay symbols cannot be referenced by a memory address, since they are not part of the physical memory. Therefore we should have a descriptor/token to describe the overlay symbol (e.g. specifying the group to which it belongs and its offset within the group).
-2.  The linker will get all the necessary data for overlay symbols from: object files, the linker script and linker flags.
-3.  The linker shall create an overlay section for each overlay symbol that appears in an object file (as a result of attributes added by the user in the source code).
-4.  Each overlay symbol is assigned to one or more *Groups* at link time, as the linker has full visibility of all overlay symbols.
-5.  The linker shall have the ability to encapsulate functions and read-only data into overlay groups.
-6.  There should be an *_"overlay area"_* that holds all of the groups in the program. This area is not for execution, it is the area from which the RT-Engine will load overlay groups and it is also for the linker to treat overlay functions as regular functions (for address allocation, optimization etc…) and debugging information is associated with the contents of this area.
-7.  Multi-group
+.  Overlay symbols cannot be referenced by a memory address, since they are not part of the physical memory. Therefore we should have a descriptor/token to describe the overlay symbol (e.g. specifying the group to which it belongs and its offset within the group).
+.  The linker shall create an overlay section for each overlay symbol that appears in an object file (as a result of attributes added by the user in the source code).
+.  Each overlay symbol is assigned to one or more *Groups* at link time, as the linker has full visibility of all overlay symbols.
+.  The linker shall have the ability to encapsulate functions and read-only data into overlay groups.
+.  There should be an *_"overlay area"_* that holds all of the groups in the program. This area is not for execution, it is the area from which the RT-Engine will load overlay groups and it is also for the linker to treat overlay functions as regular functions (for address allocation, optimization etc…) and debugging information is associated with the contents of this area.
+.  Multi-group
 +
 The linker should deal with overlay symbols which can be resident in more then one group:
 
-a. An overlay function can be resident in more than one group.
-b. Overlay data can be resident in more than one group.
+.. An overlay function can be resident in more than one group.
+.. Overlay data can be resident in more than one group.
 
-8.  Overlay Static Table
-a.  The linker shall create a group-offset-table to hold all the overlay group offsets. Each entry index in the table represents an overlay group ID. Each entry contents represent the zero base offset to the group.
-b.  Overlay group IDs are numerical.
-c.  This table can be read at runtime (e.g. by the RT-Engine, debugger or another utility) to provide a mapping to locate an overlay group.
-d.  This table shall provide sufficient information for the RT-Engine, debugger or other utilities to find the requested group within the *_"overlay area"_* (for example, so that the FW can find the locate and load a group).
-9.  Overlay group size ranges from 512B – 4K for both functions and data.
-
+.  Overlay Static Table
+..  The linker shall create a group-offset-table to hold all the overlay group offsets. Each entry index in the table represents an overlay group ID. Each entry contents represent the zero base offset to the group.
+..  Overlay group IDs are numerical.
+..  This table can be read at runtime (e.g. by the RT-Engine, debugger or another utility) to provide a mapping to locate an overlay group.
+..  This table shall provide sufficient information for the RT-Engine, debugger or other utilities to find the requested group within the *_"overlay area"_* (for example, so that the FW can locate and load a group).
+.  Overlay group size ranges from 512B – 4K for both functions and data.
 
 NOTE: This table is targeted to be a spec between the running code and the low level driver for loading the overlay function (per group). Since the table is part of the code, the developer can manage it and allocate a placeholder for the overlay groups/functions in the storage for example (storage refers to any SW I/F that can fetch the code).
+
+===== Linker flags
+The linker will get all the necessary data for overlay symbols from: object files, the linker script and linker flags.
+
+... *Input file*
++
+An external file holds "group numbers" per function name
+(this is for manual grouping). Appendix to file format  _(link:#Appendix-A-Grouping-file-syntax[Appendix A - Grouping file syntax])_.
+Without providing this file, the linker will generate a group per function
+... *Max / Min size of overlay group*
++
+For the linker to be aware of the selected group size, the user should specify
+the max/min size of an overlay group (512, 4096, etc ...)
 
 {nbsp} +
 
@@ -293,14 +346,56 @@ NOTE: This table is targeted to be a spec between the running code and the low l
 
 Since our goal is to provide a comfortable experience for the SW developer we need support for key debugging features (such as breakpoints and backtracing) on an overlay system where overlay functions and data may be mapped or unmapped (loaded/unloaded).
 
-.  The debugger should give the overlay functions the same debugging capabilities as a non-overlay function (e.g. step, step instruction, skip, backtracing etc…)
-.  _RT-Eng-Debugger-handshake:_ The debugger and the RT-Engine will communicate during run-time.
+. The debugger should give the overlay functions the same debugging capabilities as a non-overlay function (e.g. step, step instruction, skip, backtracing etc…)
+. _RT-Eng-Debugger-handshake:_ The debugger and the RT-Engine will communicate during run-time.
 The information passed from the RT-Engine to the debugger will contain the status of the loaded/unloaded (mapped/unmapped) overlay groups.
-.  Overlay RT-Engine awareness:
-..  For backtracing, the debugger should be able to unwind the stack with awareness of calls/returns through the RT-Engine.
-..  To give a comfortable debugging experience we should have an option to “skip” through the RT-Engine when doing a step on a function call or return. E.g. if we step at call to function myOverlayFoo(), the debugger should skip through the RT-Engine and the next PC we see will be the beginning of myOverlayFoo() and not within the RT-Engine. Similarly, if we step at a function return, the debugger should skip through the RT-Engine and the next PC we see will be at the return address in the caller.
-..  There should also be an option to disable this “skip” functionality to allow debugging of the RT-Engine.
+. Overlay RT-Engine awareness:
+.. For backtracing, the debugger should be able to unwind the stack with awareness of calls/returns through the RT-Engine.
+.. To give a comfortable debugging experience we should have an option to “skip” through the RT-Engine when doing a step on a function call or return. E.g. if we step at call to function myOverlayFoo(), the debugger should skip through the RT-Engine and the next PC we see will be the beginning of myOverlayFoo() and not within the RT-Engine. Similarly, if we step at a function return, the debugger should skip through the RT-Engine and the next PC we see will be at the return address in the caller.
+.. There should also be an option to disable this “skip” functionality to allow debugging of the RT-Engine.
+. The RT-Engine will have three anchors in the source code for debugger-engine synchronization.
+With those anchors, the debugger will be able to sync with RT-Engine logic-flow.
+Those anchors manifest by symbols and break-points: entering, exiting, data-base-sync-point.
++
+[[RT-Engine-and-Debugger-sync-anchors]]
+.RT-Engine and Debugger sync anchors
+[%header,cols="7a,20a"]
+|===
+| *Sync point* | *Description*
+|Enter RT-Engine| The entry point to the RT-Engine
+|Exit RT-Engine| The exit point from the RT-Engine
+|Data-base-sync-point| The sync point on which the RT-Engine refresh the loaded (mapping update) groups
+|===
 
-.  The debugger will be agnostic to the existence of a RTOS, this means a context switch can happen during an overlay operation and the debugger should hold a valid sequence.
-.  Changes in the debugger should be generic in such a way that all related _“RT-Eng-Debugger-handshake”_  will be in an external file to hook into the debugger.
-. We shall have debug information for overlay functions, that information should be symmetric if a function is placed in several groups (*_multi group_*).
+. The debugger will be agnostic to the existence of a RTOS, this means a context switch can happen during an overlay operation and the debugger should hold a valid sequence.
+. Changes in the debugger should be generic in such a way that all related _“RT-Eng-Debugger-handshake”_  will be in an external file to hook into the debugger.
+. We shall have debug information for overlay functions and overlay data. That information should be symmetric if a function is placed in several groups (*_multi group_*).
+
+{nbsp} +
+
+
+[[Appendix-A-Grouping-file-syntax]]
+= Appendix A - Grouping file syntax
+
+The linker can receive an input file to give it details about assignments of groups to functions.
+e.g. myFunction() should be in group 1.
+This file should be in comma-separate-value syntax (CSV), as described:
+
+*	Each new line represents a function
+*	First column holds a function name
+*	Each next column holds a group number to assign the function
+
+[[Example-for-Grouping-file-CSV]]
+.Example for Grouping file CSV
+
+[%header, format=csv]
+|===
+*Function name* , *Group number*, *Group number*, *Group ...*
+OvlFuncA,1,,
+OvlFuncB,2,7,
+|===
+
+----
+* OvlFuncA is to be assigned to group 1
+* OvlFuncB is to be assigned to group 2 and to group 7
+----
