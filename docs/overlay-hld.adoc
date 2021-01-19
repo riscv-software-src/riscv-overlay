@@ -138,7 +138,7 @@ the Overlay `Group ID` up to the upper 512B boundary.
 The structure of an overlay group is:
 
 .Overlay group structure
-image::images\Overlay-group-structure.png[id="Figure-{counter:image-number}"]
+image::images\overlay-group-structure.png[id="Figure-{counter:image-number}"]
 
 [[Overlay-function-call]]
 ===	Overlay function call
@@ -425,7 +425,7 @@ The user on compilation time is defining the deep of the stack.
 Example:
 
 .Example of function deepest nesting
-image::images\Example-of-function-deepest-nesting.png[id="Figure-{counter:image-number}",align="center"]
+image::images\example-of-function-deepest-nesting.png[id="Figure-{counter:image-number}",align="center"]
 
 If this is our deepest nesting calling in our application, we need to define
 the stack frame pool deep = 4 (+null element, end-of-list).
