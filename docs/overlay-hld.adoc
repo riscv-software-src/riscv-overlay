@@ -1,0 +1,558 @@
+
+:counter: image-counter: 0
+:counter: table-counter: 0
+
+:toc:
+:toclevels: 5
+:sectnums:
+:sectnumlevels: 5
+
+= Software Overlay for RISCV - HLD Version 0.1-draft-20201020
+
+[cols="0,5a", width="80%"]
+
+**Revision History**
+[cols="0,3a,10a,5a",options="header"]
+|=============================================
+|*_Revision_* |*_Date_* |*_Contents_* |*_Author(s)_*
+|0.1 |Jan 20,2020 |Initial revision / Draft a
+|Ronen Haen
+ +
+ Ofer Shinaar
+ +
+ Craig Blackmore
+|=============================================
+{nbsp} +
+{nbsp} +
+
+
+**List of Figures**
+
+<<Figure-1, Figure 1 - >><<Figure-1>> +
+<<Figure-2, Figure 2 - >><<Figure-2>> +
+<<Figure-3, Figure 3 - >><<Figure-3>> +
+<<Figure-4, Figure 4 - >><<Figure-4>> +
+<<Figure-5, Figure 5 - >><<Figure-5>>
+
+{nbsp} +
+{nbsp} +
+
+**List of Tables**
+
+<<Table-1, Table 1 - >><<Table-1>> +
+<<Table-2, Table 2 - >><<Table-2>> +
+<<Table-3, Table 3 - >><<Table-3>> +
+<<Table-4, Table 4 - >><<Table-4>> +
+<<Table-5, Table 5 - >><<Table-5>>
+
+{nbsp} +
+{nbsp} +
+
+**Reference Documents**
+[cols="1,6,3,",options="",]
+|========================================
+|Item # |Document |Revision Used |Comment
+|1 |link:riscv-overlay-software-standard-draft.adoc[riscv-overlay-software-standard-draft.adoc]
+   |0.2-draft-20201230| N/A
+|2 ||| 
+|========================================
+
+{nbsp} +
+{nbsp} +
+
+[[_Toc507430300]]**Abbreviations**
+
+[cols=",",options="",]
+|===========================
+|Abbreviation |Description
+|SW           |Software
+|HW           |Hardware
+|MMU          |Memory Management Unit
+|LRU          |Least Recently Used
+|OS           |Operation System
+|RT           |Runtime
+|RT-Engine    |Runtime Engine
+|RTOS         |Real-Time Operating System
+|R/O or RO    |Read Only
+|===========================
+
+{nbsp} +
+{nbsp} +
+
+[[overview]]
+== Overview
+
+Some systems (mostly embedded systems) have limited memory resources, and as
+a result, the total code footprint is bigger than the available memory.
+The concept of arranging code in ‘code overlays’ is quite old but still valid
+these days to resolve the code size issue. The following document specifies the
+requirement and design of an overlay manager engine for RISC-V.
+{nbsp} +
+{nbsp} +
+
+
+
+[[High-Level-Design]]
+== High-Level Design
+
+[[Block-Diagram]]
+=== Block Diagram
+The following figure describes a general firmware block diagram with the
+RT-Engine:
+
+.Generic Firmware Block Diagram
+image::images\Generic-Firmware-Block-Diagram.png[id="Figure-{counter:image-number}"]
+
+*Firmware* – this is the software being executed by the RISC-V core.
+It may contain several firmware modules that interact with each other or with
+different hardware components through firmware drivers. The firmware code can
+reside/execute in different memories, e.g., ROM, RAM, FLASH, etc.
+
+*FW Module* – Firmware module that responsible for a specific operation in the
+program. One Firmware module may reside/execute in a different memory region
+than other firmware modules.
+
+*RT-Engine* – this is the module responsible for managing the run time code
+load and execution. It is compiled and linked as all other firmware modules,
+and as such, it may also reside/execute in different memories. Any existing
+firmware module wishing to invoke a function defined as an overlay function will
+indirectly use the RT-Engine to dynamically load the function
+ (if not already loaded) and invoke (call) it
+
+{nbsp} +
+
+[[Overlay-functions]]
+===	Overlay functions
+When developing firmware code for systems with memory constraints, the engineers
+will program the code to define which function is designated to be an overlay
+function. All marked overlay functions are gathered into overlay groups with a
+size range of 512B-4K each. An overlay group may contain one or more overlay
+functions, and it is the responsibility of the toolchain to create the overlay
+groups encapsulating overlay functions.
+
+[[Overlay-group-structure]]
+====	Overlay group structure
+An overlay group size ranges from 512B – 4K and may contain several functions.
+Since an overlay group's boundary is always 512B, the group will be padded with
+the Overlay `Group ID` up to the upper 512B boundary.
+The structure of an overlay group is:
+
+.Overlay group structure
+image::images\Overlay-group-structure.png[id="Figure-{counter:image-number}"]
+
+[[Overlay-function-call]]
+===	Overlay function call
+On regular operation, when a given function foo() performs a call to function
+bar(), the toolchain generates a core-specific ‘jump’ instruction code and
+resolving the jump ‘address’. In overlay design, if bar() function is defined
+as an overlay function, the compiler can generate a ‘jump’ instruction, but the
+linker will not be able to resolve the symbol’s address since the ‘jump’ is not
+referring a fixed address in memory.
+
+[[Implicit-RT-Engine-invocation]]
+====	Implicit RT Engine invocation
+Since the linker can’t resolve the actual address of the overlay function bar(),
+ and it does know the address of the RT Engine entry point, the compiler shall
+ plant a ‘jump’ instruction to the RT Engine entry point instead of a ‘jump’
+ to bar(). To distinguish which overlay function is to be loaded and invoked,
+ the linker will use an address token defining the bar() overlay function
+ instead of the actual bar() address. Sharing a token will allow the RT Engine
+ to prepare (load/invoke) the correct overlay group in memory along with the
+ bar() function offset within the overlay group.
+
+
+.Overlay operation example
+image::images\overlay-operation-example.png[id="Figure-{counter:image-number}"]
+
+[[Implicit-RT-Engine-invocation-for-a-non-overlay-function]]
+====	Implicit RT Engine invocation for a non-overlay function
+When a function foo() is declared as an overlay function, and it is calling
+a non-overlay function bar(), there is a chance that when returning from bar(),
+foo() will already be evicted. That could be if additional overlay functions
+were loaded due to calling bar() or in another scenario, an OS context switch
+occurred, and overlay function calls were done from that context.
+Returning to an “already evicted” caller means that all non-overlay function
+calls that are made from within an overlay function must be done through the
+RT Engine. The toolchain replace the call to bar() with a call to the RT Engine
+and set the token value to point to bar() address.
+When the RT Engine is invoked, it will check if the token is a real token or an
+actual address; in this case, an actual address the RT Engine will directly jump
+to that address. When bar() completes, it will return to RT Engine, which will
+load foo() if not loaded, and return to it.
+
+[[Address-Token]]
+==== Address Token
+An address token is an overlay function descriptor providing all the needed
+information for the RT Engine to load and invoke an overlay function.
+A regular address is always an even number. Therefore, to differentiate a token
+address from a standard address, the least significant bit of the address token
+shall be set to 1 (odd).
+
+[[Overlay-address-token-structure]]
+=====	Overlay address token structure
+The overlay address token is a 32bit value defining a specific overlay function
+as follows –
+
+[[Overlay-token-structure]]
+.Overlay token structure
+[cols="1,1,1,1,11,1", id="Table-{counter:table-counter}"]
+|===
+>s|*31*
+{set:cellbgcolor:gray}
+>s|*29* >s|*28* >s|*27* >s|*17* >s|*16*
+^|Multi-group token
+{set:cellbgcolor!}
+ ^|Heap ID ^|Reserved ^|Thunk call ^|Function offset ^| Overlay group ID =>
+
+5+>|*1*
+{set:cellbgcolor:gray}
+>s|*0*
+5+^| <= Overlay group ID
+{set:cellbgcolor!}
+^|Overlay address token
+2+|B31 2+|Multi-group token 2+|B31 [1] – B16:1 specify a multi-group overlay ID +
+                               B31 [0] – B16:1 specify a regular overlay group ID
+
+2+|B30:29 2+|Heap ID               2+|Heap region identification
+2+|B28    2+|Reserved              2+|
+2+|B27    2+|Thunk call            2+|Calling an overlay function through a
+                                      function pointer
+2+|B26:17 2+|Function offset       2+|Value defining the function offset from
+                                      the beginning of the group; value
+                                      expressed in 4 bytes granularity
+2+|B16:1  2+|Overlay group ID      2+|Overlay group ID: regular overlay group ID
+                                    (function resides in) or multi-group overlay
+                                    ID (ID to a list of groups the function
+                                    resides in)
+2+|B0     2+|Overlay address token 2+|Overlay token indication: +
+                                B0 [1] – B31:0 define an overlay token address +
+                                B0 [0] – B31:0 define a memory address
+
+|===
+
+[[RT-Engine-Management-Tables]]
+===	RT Engine Management Tables
+The following management tables are required for the RT Engine operation:
+
+[[Overlay-offset-table]]
+=====	Overlay offset table
+This table is an array of overlay offsets prepared by the linker.
+A table index represents an overlay group ID; a table entry holds a specific
+overlay group's offset. For example, entry #1 defines the location offset of
+overlay-group ID #1. The offset is relative to the beginning of all existing
+overlays (Per overlay standard - “overlay area” ). There can be a case where
+several Overlay Offset Tables exist, and each such table refers to a different
+overlay heap location (Heap ID Table 1 – Overlay token). In run-time,
+the RT Engine shall get the overlay group ID from the address token and
+use it with this table to determine the overlay offset to be loaded.
+The overlay offset granularity is expressed in 512B units.
+
+[[Overlay-offset-table-structure]]
+======	Overlay offset table structure
+An entry in the overlay offset table is defined as follows –
+
+[[Overlay-offset-table-structure]]
+.Overlay offset table structure
+[cols="1,3,11", id="Table-{counter:table-counter}"]
+|===
+3+^|*15{nbsp}..{nbsp}0*
+{set:cellbgcolor:gray}
+3+^|Group offset
+{set:cellbgcolor!}
+^|B15:0 ^|Group offset ^| Offset from the begging of the overlay section;
+                             value expressed in 512B granularity
+|===
+
+Table size (number of entries) shall be equal to the number of overlay groups
+plus one unused entry footnote:[Entry n does not represent an actual overlay;
+it exists to calculate the size of overlay ID n-1.]; a single table entry
+represents each overlay group.
+The group offset value is accumulative, and the overlay group size is calculated
+by subtracting the overlay offset of the x+1 entry with the overlay offset of x
+entry.e.g., in the following table, overlay group ID 2 is in
+offset 5632B (11 * 512B) from the beginning of the overlay section, and its
+size is 1024B
+
+
+.Overlay offset table example
+[cols="1,8", id="Table-{counter:table-counter}"]
+|===
+^|*Entry*
+{set:cellbgcolor:gray}
+^| *Overlay offset table [size]*
+^|0
+{set:cellbgcolor!}
+^| 0[3*512]
+^|1 ^| 3[8*512]
+^|2 ^| 11[2*512]
+^|3 ^| 13[x*512]
+2+^| :
+^|n-1|
+^|n  |
+|===
+
+
+The ‘Overlay Group ID’ field of the Overlay Address Token is used to access
+an entry in the table.
+
+[[Overlay-multi-group-table]]
+====	Overlay multi-group table
+Any given function can be defined as a multi-group function meaning it will
+reside in more than one overlay group. The toolchain prepares this table;
+the table index defines the multi-group identifier; table entries are sub-lists
+of address tokens specifying all multi-group overlay functions; each sub-list
+defines the overlay groups of one function. In run-time, RT Engine shall use
+the input address token to determine if the token describes a multi-group
+token. If so, the overlay ID token field specifies the first index of the
+sub list in the overlay mulit-group table; RT Engine will iterate through
+the sub list and check if one of the address tokes in the sublist is already
+loaded. If none of them are loaded, the first entry of the sub list is used to
+specifies the default address token.
+
+[[Overlay-multi-group-table-structure]]
+=====	Overlay multi-group table structure
+An entry in the overlay multi-group table is an Overlay Address Token
+(see _link:#Overlay-token-structure[Tabel 1 - Overlay token structure]_)).
+The table size depends on the number of multi-groups and the number of
+occurrences per function. A zeroed Address Token separates each mutli-group
+token list. e.g., if there is only one multi-group and that multi-group
+function appears in 3 overlay groups, it will mean we’ll have a single
+multi-group ID (ID 0).
+That Overlay multi-group table shall contain 4 entries
+(the last entry will be zero). In the following example, we see that there
+are 4 multi-groups with the IDs – 0, 3, 8, 11, and each multi-group
+contains 2, 4, 2, and 3 occurrences of each function, respectively.
+
+[[Overlay-Multi-Group-example]]
+.Overlay Multi-Group example
+[cols="1,8", id="Table-{counter:table-counter}"]
+|===
+^|*Entry*
+{set:cellbgcolor:gray}
+^| *Overlay Multi-Group table*
+^|0
+{set:cellbgcolor!}
+     ^| Some Address Token footnote:declaimer[Each first entry is the default entry in
+                                    case none of the Address Tokens of a
+                                    specific group is loaded]
+^|   ^| Some Address Token
+^|   ^| 0
+
+^|3  ^| Some Address Token footnote:declaimer[]
+^|   ^| Some Address Token
+^|   ^| Some Address Token
+^|   ^| Some Address Token
+^|   ^| 0
+
+^|8  ^| Some Address Token footnote:declaimer[]
+^|   ^| Some Address Token
+^|   ^| 0
+
+^|11 ^| Some Address Token footnote:declaimer[]
+^|   ^| Some Address Token
+^|   ^| Some Address Token
+^|   ^| 0
+
+|===
+
+When RT-Engine received an Overlay Address token with the “Multi-group token”
+field set, it will extract the ‘Overlay Group ID’ field of the
+Overlay Address Token so it can access the sub-token list in the
+Overlay Multi-group table.
+
+<<<
+[[Reserved-registers]]
+===	Reserved registers
+As described in
+link:riscv-overlay-software-standard-draft.adoc[riscv-overlay-software-standard-draft.adoc]
+the RT-Engine shall have 4 RV dedicated resisters solely to it.
+It means the compiler won't use those registers on the register-allocation
+stage. The following registers are being used RT-Engine:
+
+.Reserved registers
+[cols="2,12,2", id="Table-{counter:table-counter}"]
+|===
+^|*Register/ABI name*
+{set:cellbgcolor:gray}
+^| *Register Name*
+^| *Reserved for RT-Enginee*
+^|x31
+{set:cellbgcolor!}
+ (t6) <|Holds the RT-Engine Entry point address         ^|Yes
+^|x30 (t5) <|Holds the overlay descriptor/token	        ^|Yes
+^|x29 (t4) <|RT-Engine managing a pool of stack frames,
+            the register will hold the pointer to this
+            stack	                                      ^|Yes
+^|x28 (t3) <|Holds the stack register for the RT-Engine	^|Yes
+^|x4 (tp)	 <|Only on RTOS support: Holds RT-Engine
+            dedicated stack-pointer, per task/thread	  ^|No
+
+|===
+
+NOTE: x4 is not reserved. Currently, X4 is not being used by the compilers
+(GCC 10/LLVM 12). X4 holds the thread pointer on OS system. If compiler/RTOS
+uses this register in the future, we will need to allocate a different register.
+
+[[RT-Engine-Entry-Point-Address-register-x31]]
+====	RT Engine Entry Point Address register (x31)
+The RT-Engine sets this register during firmware initialization time.
+It shall be set to the address of the RT-Engine entry point function.
+There are two cases where the compiler uses this register: i) When it encounters
+a call to an overlay function. ii) when it encounters a non-overlay function
+call from within an overlay function.In both cases, the compiler shall replace
+the call to overlay function with a ‘JR’ instruction where x16 is the jump
+register (rs1). This register content is fixed, and therefore there is no need
+to save/restore its value in case of context switch or interrupt handling.
+
+[[RT-Engine-overlay-descriptor-token-x30]]
+==== RT Engine overlay descriptor/token (x30)
+This register is read by the RT-Engine when it is called for determining which
+function is to be invoked. There are 2 cases where the toolchain sets this
+register: i) When an overlay function is invoked, the compiler/linker needs to
+set this register with the corresponding Overlay Address Token.
+ii) When a non-overlay function is called from within an overlay function,
+the compiler/linker needs to set this register to hold the non-overlay function
+address. Setting this register shall be done before the added ‘jump’
+(to RT-Engine entry point address) instruction.
+
+[[RT-Engine-Stack-Frames-Pool-register-x29]]
+==== RT Engine Stack Frames Pool register (x29)
+RT-Engine uses a designated stack to keep track of nesting function calls.
+This register holds the next available stack element, and each element holds
+token, return address, and offset to the previous element.
+The user on compilation time is defining the deep of the stack.
+
+Example:
+
+.Example of function deepest nesting
+image::images\Example-of-function-deepest-nesting.png[id="Figure-{counter:image-number}",align="center"]
+
+If this is our deepest nesting calling in our application, we need to define
+the stack frame pool deep = 4 (+null element, end-of-list).
+On RTOS based application, this pool is agnostic to the RTOS.
+
+[[RT-Engine-Stack-register-x28]]
+==== RT Engine Stack register (x28)
+This register holds the address of the RT-Engine designated stack of the
+main process. Each entry holds an allocated element address from the
+“Stack Frames Pool (x29)”.
+On RTOS based application, this register is saved on a context switch time
+since each task/thread can have its own nesting function calling on the joint
+pull list (x29)
+
+[[RT-Engine-task-thread-dedicated-stack-pointer-x4]]
+==== RT Engine task/thread dedicated stack-pointer (x4/tp)
+This register is being allocated only on RTOS based application.
+Since the RT-Engine is defined to be none-blocking
+(as much as it can per
+link:riscv-overlay-software-standard-draft.adoc[riscv-overlay-software-standard-draft],
+the logic flow of the RT-Engine can diverge if a context switch happened
+in the middle of its operation. Meaning we may not return to the PC we
+left when the context switch occurs. Due to this fact, we need to save all
+related registers to a stack. This stack is part of the Task/Thread stack,
+and x4 is pointing to it.
+
+<<<
+[[RT-Engine]]
+=== RT Engine
+
+[[High-level-flow]]
+====	High-level flow
+
+.RT-Engine High level flow
+image::images\RT-Engine-High-level-flow.png[id="Figure-{counter:image-number}", align="center"]
+
+<<<
+
+[[Address-token-query]]
+===== Address token query
+The RT-Engine needs to understand what is required to do:
+i) Call an overlay function or
+ii) Call a non-overlay function.
+This information is provided by reading the Address Token register.
+If the function is an overlay function, bit0 is set, and the Address Token
+register holds the overlay function descriptor. The RT-Engine then uses this
+ token to load and/or call the designated overlay function.
+If bit0 is cleared, the Address Token register holds a physical memory
+address of a non-overlay function, and the engine shall directly call this
+function (no need for other handlings).
+
+[[Search-for-an-already-loaded-overlay-group]]
+===== Search for an already loaded overlay group
+When the Address Token register holds an overlay function descriptor/token,
+we first need to check whether the said function is already loaded in memory
+to avoid redundant load. The RT-Engine extract the Overlay Group ID field
+(bits[1:16]) from the Address Token register and search for it in the internal
+database for “loaded overlay groups”.
+In some cases, the search is done twice; the first one is when a new call
+to an overlay function is performed, and the second search is done when
+returning to RT-Engine, and the return destination is also an overlay function.
+
+[[Eviction]]
+=====	Eviction
+When the required overlay group is not loaded in memory, and the overlay heap
+is entirely occupied, the RT-Engine needs to decide which overlay heap entry
+ can be evicted and replaced with the new overlay group.
+The eviction needs to consider which group is less “hot” than others and the
+required heap size for the new entry. The eviction algorithm is
+LRU (least recently used) Like the search procedure, the eviction decision may
+also accrue twice: i) When a new overlay function is called, ii) and after
+returning to the RT-Engine while the return destination is an overlay function,
+which was already evicted (can occur due to nested overlay function calls).
+[[Load]]
+=====	Load
+The load operation is initiated by RT-Engine and is implemented by the hosting
+application. The engine does not care how the load is performed; it can be done
+from different sources, e.g., volatile memory, non-volatile memory, or
+communication interface. The call to the load routine is blocking and does not
+return until the load is completed
+
+[[Saving-the-callee-token-and-caller-return-address]]
+=====	Saving the callee token and caller return address
+When the overlay function resides in memory, the engine must save the callee
+token and the caller return address before it is being invoked. When returning
+from callee to the caller, we first return to the RT-Engine to load the caller
+if it was evicted. Due to this paradigm, we need to save the caller's return
+address, and it’s token, so the RT-Engine can load it if needed.
+
+
+<<<
+[[Toolchain]]
+===	Toolchain
+
+[[Compiler]]
+==== Compiler
+
+[[Linker]]
+==== Linker
+
+[[Debugger]]
+==== Debugger
+
+[[Awareness-for-overlays]]
+===== Awareness for overlays
+When debugging a firmware with overlay functions, the end-user is not
+interested in the debug flow of RT-Engine (the implicit call to RT-Engine).
+Therefore when stepping in an overlay function, the debugger can automatically
+skip the RT-Engine (skip the search, evict, load, etc.) and set the breakpoint
+after entering the actual overlay function.
+
+
+
+
+
+
+
+
+
+
+
+{nbsp} +
+{nbsp} +
+{nbsp} +
+{nbsp} +
+{nbsp} +
+{nbsp} +
+{nbsp} +
+{nbsp} +
+{nbsp} +
