@@ -138,7 +138,7 @@ the Overlay `Group ID` up to the upper 512B boundary.
 The structure of an overlay group is:
 
 .Overlay group structure
-image::images\Overlay-group-structure.png[id="Figure-{counter:image-number}"]
+image::images\overlay-group-structure.png[id="Figure-{counter:image-number}"]
 
 [[Overlay-function-call]]
 ===	Overlay function call
