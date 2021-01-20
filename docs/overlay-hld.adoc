@@ -400,7 +400,7 @@ It shall be set to the address of the RT-Engine entry point function.
 There are two cases where the compiler uses this register: i) When it encounters
 a call to an overlay function. ii) when it encounters a non-overlay function
 call from within an overlay function.In both cases, the compiler shall replace
-the call to overlay function with a ‘JR’ instruction where x16 is the jump
+the call to overlay function with a ‘JR’ instruction where x31 is the jump
 register (rs1). This register content is fixed, and therefore there is no need
 to save/restore its value in case of context switch or interrupt handling.
 
@@ -419,8 +419,9 @@ address. Setting this register shall be done before the added ‘jump’
 ==== RT Engine Stack Frames Pool register (x29)
 RT-Engine uses a designated stack to keep track of nesting function calls.
 This register holds the next available stack element, and each element holds
-token, return address, and offset to the previous element.
-The user on compilation time is defining the deep of the stack.
+token, return address, and offset to the previous element. +
+
+On compilation time, the user needs to define the stack max depth.
 
 Example:
 
@@ -442,11 +443,12 @@ pull list (x29)
 
 [[RT-Engine-task-thread-dedicated-stack-pointer-x4]]
 ==== RT Engine task/thread dedicated stack-pointer (x4/tp)
-This register is being allocated only on RTOS based application.
+This register is being used only on RTOS based application.
 Since the RT-Engine is defined to be none-blocking
 (as much as it can per
-link:riscv-overlay-software-standard-draft.adoc[riscv-overlay-software-standard-draft],
-the logic flow of the RT-Engine can diverge if a context switch happened
+link:riscv-overlay-software-standard-draft.adoc[riscv-overlay-software-standard-draft]). +
+
+The logic flow of the RT-Engine can diverge if a context switch happened
 in the middle of its operation. Meaning we may not return to the PC we
 left when the context switch occurs. Due to this fact, we need to save all
 related registers to a stack. This stack is part of the Task/Thread stack,
@@ -483,7 +485,8 @@ When the Address Token register holds an overlay function descriptor/token,
 we first need to check whether the said function is already loaded in memory
 to avoid redundant load. The RT-Engine extract the Overlay Group ID field
 (bits[1:16]) from the Address Token register and search for it in the internal
-database for “loaded overlay groups”.
+database for “loaded overlay groups”. +
+
 In some cases, the search is done twice; the first one is when a new call
 to an overlay function is performed, and the second search is done when
 returning to RT-Engine, and the return destination is also an overlay function.
@@ -492,20 +495,23 @@ returning to RT-Engine, and the return destination is also an overlay function.
 =====	Eviction
 When the required overlay group is not loaded in memory, and the overlay heap
 is entirely occupied, the RT-Engine needs to decide which overlay heap entry
- can be evicted and replaced with the new overlay group.
+can be evicted and replaced with the new overlay group.
 The eviction needs to consider which group is less “hot” than others and the
 required heap size for the new entry. The eviction algorithm is
-LRU (least recently used) Like the search procedure, the eviction decision may
-also accrue twice: i) When a new overlay function is called, ii) and after
-returning to the RT-Engine while the return destination is an overlay function,
-which was already evicted (can occur due to nested overlay function calls).
+LRU (least recently used). +
+The eviction decision may also accrue twice:
+i) When a new overlay function is called,
+ii) and after returning to the RT-Engine while the return destination is an
+overlay function,which was already evicted
+(can occur due to nested overlay function calls).
+
 [[Load]]
 =====	Load
 The load operation is initiated by RT-Engine and is implemented by the hosting
 application. The engine does not care how the load is performed; it can be done
 from different sources, e.g., volatile memory, non-volatile memory, or
 communication interface. The call to the load routine is blocking and does not
-return until the load is completed
+return until the load is completed.
 
 [[Saving-the-callee-token-and-caller-return-address]]
 =====	Saving the callee token and caller return address
