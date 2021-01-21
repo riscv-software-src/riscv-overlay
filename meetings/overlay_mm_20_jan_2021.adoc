@@ -1,0 +1,55 @@
+== General summary
+
+* Promote the first HLD draft - done
+* we reviewed the RT-Engine HLD and the Reserved registers
+
+
+== Action items
+* Change section 2.5.3: +
+The max nested calling depth that the user should take
+needs to be [sum of max-depth of nested calling per task]. That is the
+worst-case scenario
+* Need to add debug-sync points on the diagram: RT-Engine High-level flow
+
+
+== Open issue / Open discussion
+* Section 2.5:
+** Can we remove the usage of x31(t6) - Holds the RT-Engine Entry point address
+, we may use a symbol instead of register usage; there are cons and pros for
+this approach.
+*** *_Pros_:*
+- We do not need to reserved register
+
+*** *_Cons_:*
+- We lose flexibility; for example, we lose the ability to lock the
+engine from running.
+- The jump address is decided on the link stage (relaxation), so the number
+of cycles for entering/exit the RT-Engine will not be deterministic.
+Using register gives better performance.
+
+{nbsp}
+
+** We need to check with eABI-TG if there is plans regarding TP register.
+From what we know, it's not been used by any small RTOS, but maybe we miss
+something, or there are plans for it.
+
+
+== Still pending:
+* Inputs from Michael E. the current concept is based on the relative between the
+"storage" and the "heap", can we think of a different approach of "altering"
+symbols on runtime so they won't be relative to the heap?
+
+** The question related to how code that references absolute addresses could be
+handled while avoiding having to rewrite addresses at runtime.
+
+** Without seeing the use case, it is assumed that this relates to some code
+that jumps to or loads from an absolute address, but that absolute address
+is in an overlay.
+
+
+
+== Next
+* Start review the Toolchain HLD
+
+{nbsp}
+_
