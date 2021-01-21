@@ -54,7 +54,7 @@
 |Item # |Document |Revision Used |Comment
 |1 |link:riscv-overlay-software-standard-draft.adoc[riscv-overlay-software-standard-draft.adoc]
    |0.2-draft-20201230| N/A
-|2 ||| 
+|2 |||
 |========================================
 
 {nbsp} +
@@ -429,14 +429,22 @@ Example:
 image::images\example-of-function-deepest-nesting.png[id="Figure-{counter:image-number}",align="center"]
 
 If this is our deepest nesting calling in our application, we need to define
-the stack frame pool deep = 4 (+null element, end-of-list).
-On RTOS based application, this pool is agnostic to the RTOS.
+the stack frame pool deep = 4 (+null element, end-of-list). +
+
+On RTOS based application, the user should take into consideration that this
+pool is shared between all tasks/threads. Therefore on a RTOS based application,
+the max nested calling depth that the user should take
+need to be: *[sum of max nested calling depth per task]*. +
+That is the worst-case scenario.
+
+
 
 [[RT-Engine-Stack-register-x28]]
 ==== RT Engine Stack register (x28)
 This register holds the address of the RT-Engine designated stack of the
 main process. Each entry holds an allocated element address from the
-“Stack Frames Pool (x29)”.
+“Stack Frames Pool (x29)”. +
+
 On RTOS based application, this register is saved on a context switch time
 since each task/thread can have its own nesting function calling on the joint
 pull list (x29)
@@ -463,7 +471,6 @@ and x4 is pointing to it.
 
 .RT-Engine High level flow
 image::images\RT-Engine-High-level-flow.png[id="Figure-{counter:image-number}", align="center"]
-
 <<<
 
 [[Address-token-query]]
