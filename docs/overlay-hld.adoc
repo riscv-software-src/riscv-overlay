@@ -434,7 +434,7 @@ the stack frame pool deep = 4 (+null element, end-of-list). +
 On RTOS based application, the user should take into consideration that this
 pool is shared between all tasks/threads. Therefore on a RTOS based application,
 the max nested calling depth that the user should take
-need to be: *[sum of max nested calling depth per task]*. +
+need to bes: *[sum of max nested calling depth per task]*. +
 That is the worst-case scenario.
 
 
