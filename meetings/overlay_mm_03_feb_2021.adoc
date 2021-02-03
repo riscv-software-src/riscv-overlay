@@ -1,0 +1,51 @@
+== General summary
+
+* Reviewed compiler High Level Design (HLD).
+
+== Action items
+
+* Section 2.7.1.1 - start with -moverlay, change to -foverlay as and when more
+targets support overlays.
+* Section 2.7.1.3
+  - Use -Mno-aliases for disassembly examples to make relocations clearer.
+  - In Low Level Design (LLD) mention the code size impact of overlay function
+  pointers (due to .ovlplt entries).
+  - Clarify that the examples here are the disassembly of object files produced
+  by the compiler (not the final binary, which will be covered in the linker
+  section).
+* Make sure linker section includes examples of relaxations.
+* Section 2.7.1.5 - elaborate on what happens if constraints are broken (e.g.
+error / warning / not applicable because compiler will not generate code that
+breaks the constraint).
+* State tools that were chosen for the implementation of each component i.e.
+LLVM, GNU binutils, GDB.
+
+== Open issue / Open discussion
+
+* Section 2.5:
+** Can we remove the usage of x31(t6) - Holds the RT-Engine Entry point address
+, we may use a symbol instead of register usage; there are cons and pros for
+this approach.
+*** Following discussion on mailing list and in this meeting, keep the usage of
+x31(t6) as the pros outweigh the cons.
+
+* Think about how Position Independent Executables (PIE) would work.
+
+== Still pending:
+* Inputs from Michael E. the current concept is based on the relative between the
+"storage" and the "heap", can we think of a different approach of "altering"
+symbols on runtime so they won't be relative to the heap?
+
+** The question related to how code that references absolute addresses could be
+handled while avoiding having to rewrite addresses at runtime.
+
+** Without seeing the use case, it is assumed that this relates to some code
+that jumps to or loads from an absolute address, but that absolute address
+is in an overlay.
+
+* We need to check with eABI-TG if there are plans regarding TP register.
+From what we know, it's not been used by any small RTOS, but maybe we miss
+something, or there are plans for it.
+
+== Next
+* Review linker HLD.
