@@ -541,7 +541,7 @@ debugger required to support overlays.
 
 ===== Flags
 
-The `-foverlay` flag enables overlay support in the compiler. Specifically,
+The `-moverlay` flag enables overlay support in the compiler. Specifically,
 this flag:
 
 * Enables an overlay calling convention `RISCV_OverlayCall`.
