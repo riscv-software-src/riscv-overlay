@@ -539,6 +539,8 @@ debugger required to support overlays.
 [[Compiler]]
 ==== Compiler
 
+The compiler support will be implemeted in Clang/LLVM.
+
 ===== Flags
 
 The `-moverlay` flag enables overlay support in the compiler. Specifically,
@@ -704,8 +706,12 @@ Arithmetic cannot be done on overlay tokens, this will produce a compiler error.
 [[Linker]]
 ==== Linker
 
+The linker support will be implemented in GNU binutils.
+
 [[Debugger]]
 ==== Debugger
+
+The debugger support will be implemented in GDB.
 
 [[Awareness-for-overlays]]
 ===== Awareness for overlays
