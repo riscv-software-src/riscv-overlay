@@ -690,15 +690,16 @@ Overlay data `foo` will be placed in `.ovlinput.foo`.
 ===== Constraints
 
 Static functions/data cannot be marked as `overlaycall`/`overlaydata` (this
-does not include class-static symbols).
+does not include class-static symbols), doing so will produce a compiler error.
 
-Overlay functions cannot be inlined.
+The compiler will not inline overlay functions.
 
-Overlay functions cannot make tail calls or be tail called.
+The compiler will not generate tail calls to or from overlay functions.
 
-Overlay functions must be 4 byte aligned.
+Overlay functions/data must be 4 byte aligned so that they can be addressed by
+overlay address tokens. The compiler will ensure this alignment.
 
-Arithmetic cannot be done on overlay tokens.
+Arithmetic cannot be done on overlay tokens, this will produce a compiler error.
 
 [[Linker]]
 ==== Linker
