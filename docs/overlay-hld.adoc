@@ -746,6 +746,100 @@ Arithmetic cannot be done on overlay tokens, this will produce a compiler error.
 
 The linker support will be implemented in GNU binutils.
 
+The presence of `.ovlinput.*` sections will trigger the linker to enable overlay
+support. The presence of an overlay symbol in multiple groups will trigger
+multi-group support.
+
+===== Grouping
+
+There are three ways in which an overlay symbol may be assigned to groups.
+
+1. Manually, by providing a CSV grouping file:
+* `--grouping-file <filename>`.
+2. By calling a grouping tool that populates a grouping file. Two flags control
+this:
+* `--grouping-tool <tool-cmd>` - command used to call the grouping tool.
+* `--grouping-tool-args <arg1>;<arg2>;...;<argN>` - arguments to be passed to
+the grouping tool. The required argument `--in-file <filename>` specifies the
+CSV file in which the linker should pass a list of symbols that require grouping
+to the grouping tool. The required argument `--out-file <filename>` specifies
+the CSV in which the grouping tool will output its groupings.
+3. Linker autogrouping - the linker will put any overlay symbol that has
+not been assigned to a group into its own group.
+
+===== Sections
+
+The linker will populate the following output sections:
+
+.ovlgrps - contains each overlay group. Referred to as ``overlay area` in the
+requirements document.
+* The first group contains the overlay offset table followed by the multi-group
+table (if multi-groups are present).
+* Each input section `.ovlinput.*` for each overlay symbol is copied into the
+group(s) to which it has been assigned.
+
+.ovlcache - the overlay heap into which overlay groups are loaded at runtime by
+the RT-Engine. Referred to as ``heap area'' in the requirements document.
+
+.ovlplt - contains the overlay PLT.
+
+===== Tables
+
+The linker will construct the overlay offset table and multi-group tables (if
+multi-groups are present).
+
+===== Tokens
+
+For each overlay relocation, the linker will construct the required overlay
+token.
+
+===== Groups
+
+Any symbol referred to by an overlay relocation must be assigned to one or more
+groups. Each group will be populated with the input sections for the symbols
+assigned to that group. Each group will be padded to the next overlay group
+page boundary, with the CRC32 value being placed in the last 32-bits of the
+group.
+
+Minimum group size / overlay group page boundary is defined by symbol
+`OVERLAY_MIN_GROUP_SIZE`.
+
+Maximum group size is defined by symbol `OVERLAY_MAX_GROUP_SIZE`.
+
+===== Overlay Procedure Linkage Table (PLT)
+
+The overlay PLT contains an entry for calling each overlay function called via a
+function pointer. Since each entry contains three instructions, users should
+consider the code size overhead associated with indirect overlay calls (as well
+as the speed overhead from the indirection).
+
+```
+20400364 <.ovlplt>:
+20400364:       08000f37                lui     t5,0x8000
+20400368:       007f0f13                addi    t5,t5,7 # 8000007
+2040036c:       000f8067                jr      t6
+20400370:       08000f37                lui     t5,0x8000
+20400374:       003f0f13                addi    t5,t5,3 # 8000003
+20400378:       000f8067                jr      t6
+2040037c:       08000f37                lui     t5,0x8000
+20400380:       005f0f13                addi    t5,t5,5 # 8000005
+20400384:       000f8067                jr      t6
+```
+
+===== Relaxations
+
+The linker is permitted to relax the materialization of overlay tokens, for
+example:
+```
+lui     t5, 0
+addi    t5, t5, 3
+```
+could be relaxed to:
+```
+addi    t5, zero, 3
+jalr    ra, 0(t6)
+```
+
 [[Debugger]]
 ==== Debugger
 
