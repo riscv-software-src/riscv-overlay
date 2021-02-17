@@ -1,0 +1,58 @@
+== General summary
+* We will keep the meeting on the same time slot:
+*_Wednesday 6:00 am PST/2 pm UK/4 pm ISR/10 pm China_*
+* After HLD review will be complete we will start working on publish patches
+to llvm and GNU.
+
+== Action items
+* 2.7.1.5 add bullets
+* 2.7.2 elaborate that *ovliput* are sections arrived from *overlay attribute*?
+* 2.7.2.1 /2 lets mentioned that grouping tool is optional and number '3' is
+the default
+* 2.7.2.2
+** add dot to *ovlgrps*
+** fix bullets
+** add 'dot' to *ovlchache*
+** mention that *debug info* it should go into this section. On Debug chapter
+we will elaborate more.
+* 2.7.2.3
+** add 'dot' to *ovlplt* and move it to 2.7.2.2
+** add a cross-link to the syntax of the tables + explain again that it
+goes to group -1-
+* 2.7.2.4 add a cross-link to the *token table*
+* 2.7.2.5
+** add cross ref to group structure
+** flag to activate the creation of CRC checksum on linker side
+** let us state the chosen CRC algo (just pick one)
+** We need better names for MIN/MAX_GROUP_SIZE, and we need to align it with the
+draft.
+
+* Check if we had crc32 hook on the hook section. If missing, we should add it.
+
+
+== Open issue / Open discussion
+* Section 2.5:
+** We need to check with eABI-TG if there are plans regarding TP register.
+From what we know, it's not been used by any small RTOS, but maybe we miss
+something, or there are plans for it.
+
+
+== Still pending:
+* Inputs from Michael E. the current concept is based on the relative between
+the "storage" and the "heap", can we think of a different approach of "altering"
+symbols on runtime so they won't be relative to the heap?
+
+** The question related to how code that references absolute addresses could be
+handled while avoiding having to rewrite addresses at runtime.
+
+** Without seeing the use case, it is assumed that this relates to some code
+that jumps to or loads from an absolute address, but that absolute address
+is in an overlay.
+
+
+
+== Next
+* Start to review the Toolchain HLD - Debug
+
+{nbsp}
+_
