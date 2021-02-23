@@ -28,6 +28,11 @@ goes to group -1-
 draft.
 
 * Check if we had crc32 hook on the hook section. If missing, we should add it.
+** *[OS]*: The CRC is not part of the *HLD* same as all hooks. They are part of
+the implementation (*LLD*). On the _riscv-overlay-software-standard-draft.adoc_
+we only specified the *must* have hooks. CRC hook is an optional per-application
+design.
+
 
 
 == Open issue / Open discussion
