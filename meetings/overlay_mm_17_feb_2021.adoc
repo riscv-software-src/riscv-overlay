@@ -6,9 +6,10 @@ to llvm and GNU.
 
 == Action items
 * 2.7.1.5 add bullets
-* 2.7.2 elaborate that *ovliput* are sections arrived from *overlay attribute*?
-* 2.7.2.1 /2 lets mentioned that grouping tool is optional and number '3' is
-the default
+* 2.7.2 elaborate that *ovlinput* are sections arrived from *overlay attribute*?
+* 2.7.2.1 /2 mention that linker autogrouping is the default and that grouping
+file and external tool are optional.Using both a grouping file and grouping tool
+is an error.
 * 2.7.2.2
 ** add dot to *ovlgrps*
 ** fix bullets
