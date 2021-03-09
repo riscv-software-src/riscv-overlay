@@ -777,6 +777,9 @@ requirements document.
 table (if multi-groups are present).
 * Each input section `.ovlinput.*` for each overlay symbol is copied into the
 group(s) to which it has been assigned.
+* Debug info is associated with whichever group an overlay symbol is placed
+first by the linker. Subsequent groups containing the same overlay symbol do not
+have debug info associated with them.
 
 .ovlcache - the overlay heap into which overlay groups are loaded at runtime by
 the RT-Engine. Referred to as ``heap area'' in the requirements document.
@@ -843,25 +846,88 @@ jalr    ra, 0(t6)
 [[Debugger]]
 ==== Debugger
 
-The debugger support will be implemented in GDB.
+The debugger support will be implemented in GDB, which will interface with a
+a Python overlay manager framework that handles the implementation details of
+a specific overlay scheme (e.g. decoding overlay data structures; identifying
+overlay functions, storage area addresses and cache area addresses; unwinding
+through the RT-Engine).
+
+[[Debug-info]]
+===== Debug info
+
+Debug info is associated with exactly one occurence of an overlay function or
+data in the storage area. Since for overlays the program counter will point to
+cache addresses rather than storage addresses, the debugger needs to be able to
+translate between storage and cache addresses.
+
+[[Mapped-unmapped-overlays]]
+===== Mapped/unmapped overlays
+
+The debugger will keep a record of which overlays are currently mapped into the
+cache area. This needs to be updated whenever the RT-Engine loads or evicts an
+overlay. To do this, the debugger sets an internal Overlay Event Breakpoint
+(OEBP) on the debugger sync point shown in the link:#Block-Diagram[RT-Engine
+High level flow diagram]. When the OEBP is hit, the debugger updates its
+overlay mappings by examining the RT-Engine state (this internal update is
+transparent to the user).
+
+[[Breakpoints]]
+===== Breakpoints
+
+For a breakpoint created on an overlay within the storage area, when the
+debugger inserts the breakpoint, it will insert a breakpoint on each cache
+address at which the overlay is currently mapped.
+
+If a breakpoint is created on a location within the cache area, the location
+will be converted to a storage area address. If the cache address does not
+relate to a currently mapped overlay the debugger will give an error and no
+breakpoint will be created.
+
+When the debugger updates its record of currently mapped overlays, any
+inserted breakpoints for overlays that are no longer mapped will be deleted and
+new breakpoints are inserted for newly mapped overlays.
+
+When a breakpoint is hit, the program counter will be at a cache address. This
+address will be translated to the storage address with associated debug info so
+that line table information can be looked up.
 
 [[Awareness-for-overlays]]
 ===== Awareness for overlays
-When debugging a firmware with overlay functions, the end-user is not
-interested in the debug flow of RT-Engine (the implicit call to RT-Engine).
-Therefore when stepping in an overlay function, the debugger can automatically
-skip the RT-Engine (skip the search, evict, load, etc.) and set the breakpoint
-after entering the actual overlay function.
 
+When debugging an application with overlays, the end-user is unlikely to be
+interested in seeing the debug flow of the RT-Engine for calls and returns
+through the RT-Engine. Therefore, the debugger provides the functionality to
+skip the RT-Engine when stepping through application code. This functionality is
+enabled with `set skip-ovlmgr 1`.
 
+RT-Engine skipping will occur in the following scenarios:
 
+1. When doing `step` on a call that goes through the RT-Engine, a breakpoint
+will be set at the start of the callee and the debugger will continue.
 
+2. When doing `step` or `next` on a return to the RT-Engine, a breakpoint will
+be set on the RT-Engine's return address and the debugger will continue.
 
+3. When doing `finish` on a function that returns to the RT-Engine, a breakpoint
+will be set on the RT-Engine's return address and the debugger will continue.
 
+RT-Engine skipping does not occur for `stepi` and `nexti`.
 
+[[Backtracing]]
+===== Backtracing
 
+Backtracing through the RT-Engine requires a custom unwinder that understands
+the RT-Engine stack and can determine the caller's return address and stack
+pointer based from the current position within the RT-Engine. This unwinder is
+provided by the Python overlay manager.
 
+If the RT-Engine was called by an overlay function, the return address for the
+RT-Engine will be a cache address (of a now possibly unmapped overlay) that
+needs translating to a storage address.
 
+As a minimum, it is expected that debugger will be able to show return address
+and stack pointer for each frame. The extent to which other registers are shown
+for frames above the RT-Engine depends on the unwinder implementation.
 
 {nbsp} +
 {nbsp} +
