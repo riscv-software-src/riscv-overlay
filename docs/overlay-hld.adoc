@@ -546,7 +546,6 @@ The compiler support will be implemeted in Clang/LLVM.
 The `-moverlay` flag enables overlay support in the compiler. Specifically,
 this flag:
 
-* Enables an overlay calling convention `RISCV_OverlayCall`.
 * Reserves the registers required by the RT-Engine.
 * Enables the use of attributes `overlaycall` and `overlaydata`.
 
@@ -570,19 +569,7 @@ The new relocations are as follows:
 | 225  | R_RISCV_OVLPLT32      | 32-bit overlay plt entry address
 |==========================================================================
 
-===== Calling convention
-
-A new calling convention is required for calls involving overlay functions. This
-will be called `RISCV_OverlayCall`. Non-overlay functions follow a calling
-convention from the RISCV psABI. Calls between overlay and non-overlay functions
-must be compatible with the underlying calling convention for non-overlay
-functions - to ensure this compatibility:
-
-* The RT-Engine is responsible for passing arguments to the callee, return
-values from the callee and preserving registers as required by the underlying
-ABI.
-* The compiler must not apply optimizations that would break compatibility
-between overlay function and non-overlay function calling conventions.
+===== Input sections
 
 The compiler places overlay functions or data in their own sections so that they
 are self-contained and the linker can sort and group them. An overlay function
@@ -590,9 +577,22 @@ or data with symbol `X` will be placed in section `.ovlinput.X`. There is no
 need to distinguish between functions and data in the section name as they are
 treated the same by the linker.
 
-Any call in which the caller or callee is an overlay function must be invoked
-via the RT engine.
+===== Calling overlay functions
 
+Any call in which the caller or callee is an overlay function must be invoked
+via the RT engine, which means that link:#direct-call:[direct] and
+link:#indirect-call:[indirect] calls involving overlay functions require a
+different call sequence to normal calls.
+
+Calls between overlay and non-overlay functions must be compatible with the
+underlying ABI. To ensure this compatibility:
+
+* The RT-Engine is responsible for obeying the calling convention (e.g.
+maintaining argument passing, return value and register saving requirements).
+* The compiler must not apply optimizations that would break the calling
+convention when moving between overlay and non-overlay functions.
+
+[[direct-call]]
 *Direct call*
 
 For a call to an overlay function (i.e. callee has attribute `overlaycall`),
@@ -643,6 +643,7 @@ and after linking:
 204000fa:       8082                    ret
 ```
 
+[[indirect-call]]
 *Indirect call*
 
 For an indirect call to an overlay function (i.e. callee has attribute
