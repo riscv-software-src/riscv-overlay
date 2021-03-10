@@ -730,26 +730,27 @@ Overlay data `foo` will be placed in `.ovlinput.foo`.
 
 ===== Constraints
 
-Static functions/data cannot be marked as `overlaycall`/`overlaydata` (this
+* Static functions/data cannot be marked as `overlaycall`/`overlaydata` (this
 does not include class-static symbols), doing so will produce a compiler error.
 
-The compiler will not inline overlay functions.
+* The compiler will not inline overlay functions.
 
-The compiler will not generate tail calls to or from overlay functions.
+* The compiler will not generate tail calls to or from overlay functions.
 
-Overlay functions/data must be 4 byte aligned so that they can be addressed by
+* Overlay functions/data must be 4 byte aligned so that they can be addressed by
 overlay address tokens. The compiler will ensure this alignment.
 
-Arithmetic cannot be done on overlay tokens, this will produce a compiler error.
+* Arithmetic cannot be done on overlay tokens, this will produce a compiler
+error.
 
 [[Linker]]
 ==== Linker
 
 The linker support will be implemented in GNU binutils.
 
-The presence of `.ovlinput.*` sections will trigger the linker to enable overlay
-support. The presence of an overlay symbol in multiple groups will trigger
-multi-group support.
+The presence of `.ovlinput.*` sections in the input object files will trigger
+the linker to enable overlay support. The presence of an overlay symbol in
+multiple groups will trigger multi-group support.
 
 ===== Grouping
 
@@ -768,42 +769,44 @@ the CSV in which the grouping tool will output its groupings.
 3. Linker autogrouping - the linker will put any overlay symbol that has
 not been assigned to a group into its own group.
 
+Linker autogrouping is the default. Grouping file and grouping tool are optional
+and using both is an error.
+
+===== Tables
+
+The linker will construct the overlay offset table and multi-group table (if
+multi-groups are present).
+
 ===== Sections
 
 The linker will populate the following output sections:
 
-.ovlgrps - contains each overlay group. Referred to as ``overlay area` in the
+* `.ovlgrps` - contains each overlay group. Referred to as ``overlay area` in the
 requirements document.
-* The first group contains the overlay offset table followed by the multi-group
-table (if multi-groups are present).
-* Each input section `.ovlinput.*` for each overlay symbol is copied into the
-group(s) to which it has been assigned.
-* Debug info is associated with whichever group an overlay symbol is placed
-first by the linker. Subsequent groups containing the same overlay symbol do not
-have debug info associated with them.
+  * The first group contains the overlay offset table followed by the multi-group
+  table (if multi-groups are present).
+  * Each input section `.ovlinput.*` for each overlay symbol is copied into the
+  group(s) to which it has been assigned.
+  * Debug info is associated with whichever group an overlay symbol is placed
+  first by the linker. Subsequent groups containing the same overlay symbol do
+  not have debug info associated with them.
 
-.ovlcache - the overlay heap into which overlay groups are loaded at runtime by
-the RT-Engine. Referred to as ``heap area'' in the requirements document.
+* `.ovlcache` - the overlay heap into which overlay groups are loaded at runtime
+by the RT-Engine. Referred to as ``heap area'' in the requirements document.
 
-.ovlplt - contains the overlay PLT.
-
-===== Tables
-
-The linker will construct the overlay offset table and multi-group tables (if
-multi-groups are present).
+* `.ovlplt` - contains the overlay PLT.
 
 ===== Tokens
 
-For each overlay relocation, the linker will construct the required overlay
-token.
+For each overlay relocation, the linker will construct the required
+link:#Address-Token[overlay token].
 
 ===== Groups
 
 Any symbol referred to by an overlay relocation must be assigned to one or more
-groups. Each group will be populated with the input sections for the symbols
-assigned to that group. Each group will be padded to the next overlay group
-page boundary, with the CRC32 value being placed in the last 32-bits of the
-group.
+link:#Overlay-group-structure[groups]. Each group will be populated with the
+input sections for the symbols assigned to that group. Each group will be padded
+to the next overlay group page boundary.
 
 Minimum group size / overlay group page boundary is defined by symbol
 `OVERLAY_MIN_GROUP_SIZE`.
