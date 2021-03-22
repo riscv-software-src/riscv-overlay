@@ -9,10 +9,9 @@
 
 = Software Overlay for RISCV - HLD Version 0.1-draft-20201020
 
-[cols="0,5a", width="80%"]
 
 **Revision History**
-[cols="0,3a,10a,5a",options="header"]
+[cols="3,3a,10a,5a",options="header"]
 |=============================================
 |*_Revision_* |*_Date_* |*_Contents_* |*_Author(s)_*
 |0.1 |Jan 20,2020 |Initial revision / Draft a
@@ -235,7 +234,7 @@ as follows –
 The following management tables are required for the RT Engine operation:
 
 [[Overlay-offset-table]]
-=====	Overlay offset table
+====	Overlay offset table
 This table is an array of overlay offsets prepared by the linker.
 A table index represents an overlay group ID; a table entry holds a specific
 overlay group's offset. For example, entry #1 defines the location offset of
@@ -248,7 +247,7 @@ use it with this table to determine the overlay offset to be loaded.
 The overlay offset granularity is expressed in 512B units.
 
 [[Overlay-offset-table-structure]]
-======	Overlay offset table structure
+=====	Overlay offset table structure
 An entry in the overlay offset table is defined as follows –
 
 [[Overlay-offset-table-structure]]

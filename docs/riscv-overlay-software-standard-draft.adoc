@@ -7,10 +7,9 @@
 
 = RISC-V Overlay “Software Standard Proposal” Version 0.2-draft-20201230
 
-[cols="0,5a", width="80%"]
 
 **Revision History**
-[cols="0,3a,10a,5a",options="header"]
+[cols="3,3a,10a,5a",options="header"]
 |=============================================
 |*_Revision_* |*_Date_* |*_Contents_* |*_Author(s)_*
 |0.1 |Oct 07,2020 |Initial revision / Draft a
@@ -221,7 +220,7 @@ Instrumentation is needed for analysis, which can be used to improve the perform
 For example: user can catch a sequence of overlay-function-calls, from the instrumentation, and according to the result he can encapsulate the functions to a specific group.
 
 .Instrumentation interface hooks
-[cols="1%,30%,50%",options="header,,autowidth",]
+[cols="2%,30%,50%",options="header,,autowidth",]
 |======================================================================================================================
 | |Instrumentation name |Description
 |1.|Invoke callee + Load |Load overlay function and invoke it
@@ -286,7 +285,7 @@ On new eABI we should reserve *N _saved registers_* (preferred last ones x16-x31
 +
 [[Reserved-N-core-registers]]
 .Reserved N core registers
-[cols="0,5a"]
+[cols="1,5a"]
 |===
 | Register | Designation
 ^|Xa|Holds the RT-Engine Entry point address
@@ -375,7 +374,7 @@ Those anchors manifest by symbols and break-points: entering, exiting, data-base
 
 
 [[Appendix-A-Grouping-file-syntax]]
-= Appendix A - Grouping file syntax
+== Appendix A - Grouping file syntax
 
 The linker can receive an input file to give it details about assignments of groups to functions.
 e.g. myFunction() should be in group 1.
