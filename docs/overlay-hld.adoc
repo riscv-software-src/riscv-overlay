@@ -2,24 +2,30 @@
 :counter: image-counter: 0
 :counter: table-counter: 0
 
+= Software Overlay for RISCV - HLD Version 0.4-draft-20210322
+
 :toc:
+:doctype: book
 :toclevels: 5
 :sectnums:
 :sectnumlevels: 5
-
-= Software Overlay for RISCV - HLD Version 0.1-draft-20201020
-
 
 **Revision History**
 [cols="3,3a,10a,5a",options="header"]
 |=============================================
 |*_Revision_* |*_Date_* |*_Contents_* |*_Author(s)_*
-|0.1 |Jan 20,2020 |Initial revision / Draft a
+|0.1 |Jan 20,2021 |Initial revision / Draft a
 |Ronen Haen
  +
  Ofer Shinaar
  +
  Craig Blackmore
+ |0.2 |Feb 03,2021| Toochain compiler 
+ |Craig Blackmore
+ |0.3 |Feb 16,2021| Toochain linker and debugger
+ |Craig Blackmore
+ |0.4 |Feb 16,2021| pdf fixups
+ |Ofer Shinaar
 |=============================================
 {nbsp} +
 {nbsp} +
