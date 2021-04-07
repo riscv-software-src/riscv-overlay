@@ -1,0 +1,66 @@
+== General summary
+* Status update:
+** We are waiting for T&R to approve the *standard*
+
+== Promoting FW/Toolchain
+* First stage (promoting):
+** We promote WD overlay implementation (ComRV) based on the standard
+ and the HLD
+** Branch name is *comrv-code*, we will PR and review it before merge to master
+** Our build system is *SCons*, we provided README file to build it but more
+will come
+** The source tree will look  like the following :
+
+```
+  comrv
+    |-- api_inc              <- public include files used by hosting application
+           |-- comrv_api.h
+           |-- comrv_base_types.h
+           |-- comrv_config.h
+           |-- comrv_defines.h
+           |-- comrv_info.h
+           |-- comrv_types.h
+    |-- build
+           |-- output             <- comrv library is generated here
+           |-- scons-tools        <- scripts used by scons
+                    |-- cc_rv.py
+                    |-- ar_rv.py
+                    |-- as_rv.py
+           |-- SConscript_comrv   <- comrv build script used by scons
+           |-- SConstruct         <- main scons build script
+    |-- loc_inc                   <- local (private) include files used by comrv
+           |-- comrv.h
+           |-- comrv_macros.inc
+    |-- comrv.c                   <- comrv source
+    |-- comrv_entry.S             <- comrv source
+
+```
+** Next phase:
+*** Working demo will be ported on next phase
+*** Links to LLVM, Binutils (with GDB support), and build-toolchain
+so users can build a working overlay toolchain.
+*** Links to `BOX` that holds already built toolchain
+
+
+
+== Action items
+* We need to search for a final home for the Engine FW. We think to thread it
+with the toolchain build-system or other options (we discuses `Newlib`,
+but don't think it is a valid/correct option)
+
+== Still pending:
+* Inputs from Michael E. the current concept is based on the relative between
+the "storage" and the "heap", can we think of a different approach of "altering"
+symbols on runtime so they won't be relative to the heap?
+
+** The question related to how code that references absolute addresses could be
+handled while avoiding having to rewrite addresses at runtime.
+
+** Without seeing the use case, it is assumed that this relates to some code
+that jumps to or loads from an absolute address, but that absolute address
+is in an overlay.
+
+
+
+{nbsp}
+_
