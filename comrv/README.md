@@ -11,7 +11,7 @@
 
 # Configure comrv build
 
-Open the filw  ```<path-to-comrv-directory>/build/SConstruct``` and comment/uncomment relevant comrv features under  ```Env['PUBLIC_DEF']```
+Open the file  ```<path-to-comrv-directory>/build/SConstruct``` and comment/uncomment relevant comrv features under  ```Env['PUBLIC_DEF']```
 
 # Build comrv library
     $ cd <path-to-comrv-directory>/build
