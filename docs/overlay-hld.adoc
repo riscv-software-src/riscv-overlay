@@ -551,7 +551,6 @@ The compiler support will be implemeted in Clang/LLVM.
 The `-moverlay` flag enables overlay support in the compiler. Specifically,
 this flag:
 
-* Enables an overlay calling convention `RISCV_OverlayCall`.
 * Reserves the registers required by the RT-Engine.
 * Enables the use of attributes `overlaycall` and `overlaydata`.
 
@@ -575,19 +574,7 @@ The new relocations are as follows:
 | 225  | R_RISCV_OVLPLT32      | 32-bit overlay plt entry address
 |==========================================================================
 
-===== Calling convention
-
-A new calling convention is required for calls involving overlay functions. This
-will be called `RISCV_OverlayCall`. Non-overlay functions follow a calling
-convention from the RISCV psABI. Calls between overlay and non-overlay functions
-must be compatible with the underlying calling convention for non-overlay
-functions - to ensure this compatibility:
-
-* The RT-Engine is responsible for passing arguments to the callee, return
-values from the callee and preserving registers as required by the underlying
-ABI.
-* The compiler must not apply optimizations that would break compatibility
-between overlay function and non-overlay function calling conventions.
+===== Input sections
 
 The compiler places overlay functions or data in their own sections so that they
 are self-contained and the linker can sort and group them. An overlay function
@@ -595,9 +582,22 @@ or data with symbol `X` will be placed in section `.ovlinput.X`. There is no
 need to distinguish between functions and data in the section name as they are
 treated the same by the linker.
 
-Any call in which the caller or callee is an overlay function must be invoked
-via the RT engine.
+===== Calling overlay functions
 
+Any call in which the caller or callee is an overlay function must be invoked
+via the RT engine, which means that link:#direct-call:[direct] and
+link:#indirect-call:[indirect] calls involving overlay functions require a
+different call sequence to normal calls.
+
+Calls between overlay and non-overlay functions must be compatible with the
+underlying ABI. To ensure this compatibility:
+
+* The RT-Engine is responsible for obeying the calling convention (e.g.
+maintaining argument passing, return value and register saving requirements).
+* The compiler must not apply optimizations that would break the calling
+convention when moving between overlay and non-overlay functions.
+
+[[direct-call]]
 *Direct call*
 
 For a call to an overlay function (i.e. callee has attribute `overlaycall`),
@@ -648,6 +648,7 @@ and after linking:
 204000fa:       8082                    ret
 ```
 
+[[indirect-call]]
 *Indirect call*
 
 For an indirect call to an overlay function (i.e. callee has attribute
@@ -734,26 +735,27 @@ Overlay data `foo` will be placed in `.ovlinput.foo`.
 
 ===== Constraints
 
-Static functions/data cannot be marked as `overlaycall`/`overlaydata` (this
+* Static functions/data cannot be marked as `overlaycall`/`overlaydata` (this
 does not include class-static symbols), doing so will produce a compiler error.
 
-The compiler will not inline overlay functions.
+* The compiler will not inline overlay functions.
 
-The compiler will not generate tail calls to or from overlay functions.
+* The compiler will not generate tail calls to or from overlay functions.
 
-Overlay functions/data must be 4 byte aligned so that they can be addressed by
+* Overlay functions/data must be 4 byte aligned so that they can be addressed by
 overlay address tokens. The compiler will ensure this alignment.
 
-Arithmetic cannot be done on overlay tokens, this will produce a compiler error.
+* Arithmetic cannot be done on overlay tokens, this will produce a compiler
+error.
 
 [[Linker]]
 ==== Linker
 
 The linker support will be implemented in GNU binutils.
 
-The presence of `.ovlinput.*` sections will trigger the linker to enable overlay
-support. The presence of an overlay symbol in multiple groups will trigger
-multi-group support.
+The presence of `.ovlinput.*` sections in the input object files will trigger
+the linker to enable overlay support. The presence of an overlay symbol in
+multiple groups will trigger multi-group support.
 
 ===== Grouping
 
@@ -772,39 +774,44 @@ the CSV in which the grouping tool will output its groupings.
 3. Linker autogrouping - the linker will put any overlay symbol that has
 not been assigned to a group into its own group.
 
+Linker autogrouping is the default. Grouping file and grouping tool are optional
+and using both is an error.
+
+===== Tables
+
+The linker will construct the overlay offset table and multi-group table (if
+multi-groups are present).
+
 ===== Sections
 
 The linker will populate the following output sections:
 
-.ovlgrps - contains each overlay group. Referred to as ``overlay area` in the
+* `.ovlgrps` - contains each overlay group. Referred to as ``overlay area` in the
 requirements document.
-* The first group contains the overlay offset table followed by the multi-group
-table (if multi-groups are present).
-* Each input section `.ovlinput.*` for each overlay symbol is copied into the
-group(s) to which it has been assigned.
+  * The first group contains the overlay offset table followed by the multi-group
+  table (if multi-groups are present).
+  * Each overlay function and data is copied to the group(s) to which it has been
+  assigned.
+  * Debug info is associated with whichever group an overlay symbol is placed
+  first by the linker. Subsequent groups containing the same overlay symbol do
+  not have debug info associated with them.
 
-.ovlcache - the overlay heap into which overlay groups are loaded at runtime by
-the RT-Engine. Referred to as ``heap area'' in the requirements document.
+* `.ovlcache` - the overlay heap into which overlay groups are loaded at runtime
+by the RT-Engine. Referred to as ``heap area'' in the requirements document.
 
-.ovlplt - contains the overlay PLT.
-
-===== Tables
-
-The linker will construct the overlay offset table and multi-group tables (if
-multi-groups are present).
+* `.ovlplt` - contains the overlay PLT.
 
 ===== Tokens
 
-For each overlay relocation, the linker will construct the required overlay
-token.
+For each overlay relocation, the linker will construct the required
+link:#Address-Token[overlay token].
 
 ===== Groups
 
 Any symbol referred to by an overlay relocation must be assigned to one or more
-groups. Each group will be populated with the input sections for the symbols
-assigned to that group. Each group will be padded to the next overlay group
-page boundary, with the CRC32 value being placed in the last 32-bits of the
-group.
+link:#Overlay-group-structure[groups]. Each group will be populated with the
+input sections for the symbols assigned to that group. Each group will be padded
+to the next overlay group page boundary.
 
 Minimum group size / overlay group page boundary is defined by symbol
 `OVERLAY_MIN_GROUP_SIZE`.
@@ -848,25 +855,88 @@ jalr    ra, 0(t6)
 [[Debugger]]
 ==== Debugger
 
-The debugger support will be implemented in GDB.
+The debugger support will be implemented in GDB, which will interface with a
+a Python overlay manager framework that handles the implementation details of
+a specific overlay scheme (e.g. decoding overlay data structures; identifying
+overlay functions, storage area addresses and cache area addresses; unwinding
+through the RT-Engine).
+
+[[Debug-info]]
+===== Debug info
+
+Debug info is associated with exactly one occurence of an overlay function or
+data in the storage area. Since for overlays the program counter will point to
+cache addresses rather than storage addresses, the debugger needs to be able to
+translate between storage and cache addresses.
+
+[[Mapped-unmapped-overlays]]
+===== Mapped/unmapped overlays
+
+The debugger will keep a record of which overlays are currently mapped into the
+cache area. This needs to be updated whenever the RT-Engine loads or evicts an
+overlay. To do this, the debugger sets an internal Overlay Event Breakpoint
+(OEBP) on the debugger sync point shown in the link:#Block-Diagram[RT-Engine
+High level flow diagram]. When the OEBP is hit, the debugger updates its
+overlay mappings by examining the RT-Engine state (this internal update is
+transparent to the user).
+
+[[Breakpoints]]
+===== Breakpoints
+
+For a breakpoint created on an overlay within the storage area, when the
+debugger inserts the breakpoint, it will insert a breakpoint on each cache
+address at which the overlay is currently mapped.
+
+If a breakpoint is created on a location within the cache area, the location
+will be converted to a storage area address. If the cache address does not
+relate to a currently mapped overlay the debugger will give an error and no
+breakpoint will be created.
+
+When the debugger updates its record of currently mapped overlays, any
+inserted breakpoints for overlays that are no longer mapped will be deleted and
+new breakpoints are inserted for newly mapped overlays.
+
+When a breakpoint is hit, the program counter will be at a cache address. This
+address will be translated to the storage address with associated debug info so
+that line table information can be looked up.
 
 [[Awareness-for-overlays]]
 ===== Awareness for overlays
-When debugging a firmware with overlay functions, the end-user is not
-interested in the debug flow of RT-Engine (the implicit call to RT-Engine).
-Therefore when stepping in an overlay function, the debugger can automatically
-skip the RT-Engine (skip the search, evict, load, etc.) and set the breakpoint
-after entering the actual overlay function.
 
+When debugging an application with overlays, the end-user is unlikely to be
+interested in seeing the debug flow of the RT-Engine for calls and returns
+through the RT-Engine. Therefore, the debugger provides the functionality to
+skip the RT-Engine when stepping through application code. This functionality is
+enabled with `set skip-ovlmgr 1`.
 
+RT-Engine skipping will occur in the following scenarios:
 
+1. When doing `step` on a call that goes through the RT-Engine, a breakpoint
+will be set at the start of the callee and the debugger will continue.
 
+2. When doing `step` or `next` on a return to the RT-Engine, a breakpoint will
+be set on the RT-Engine's return address and the debugger will continue.
 
+3. When doing `finish` on a function that returns to the RT-Engine, a breakpoint
+will be set on the RT-Engine's return address and the debugger will continue.
 
+RT-Engine skipping does not occur for `stepi` and `nexti`.
 
+[[Backtracing]]
+===== Backtracing
 
+Backtracing through the RT-Engine requires a custom unwinder that understands
+the RT-Engine stack and can determine the caller's return address and stack
+pointer based from the current position within the RT-Engine. This unwinder is
+provided by the Python overlay manager.
 
+If the RT-Engine was called by an overlay function, the return address for the
+RT-Engine will be a cache address (of a now possibly unmapped overlay) that
+needs translating to a storage address.
 
+As a minimum, it is expected that debugger will be able to show return address
+and stack pointer for each frame. The extent to which other registers are shown
+for frames above the RT-Engine depends on the unwinder implementation.
 
 {nbsp} +
 {nbsp} +
