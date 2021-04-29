@@ -1,4 +1,4 @@
-= Software Overlay “Software Standard Proposal” Version 0.2-draft-20201230
+= Software Overlay “Software Standard Proposal” Version 0.3-draft-202104229
 
 :doctype: book
 :toc:
@@ -238,13 +238,15 @@ The RT-Engine will be the entity to invoke the overlay function.
 
 .  The RT-Engine should support invoking indirect function calls
 (i.e., calls via function-pointers)
-.  After a function is loaded to the heap, the RT-Engine will pass all
-requested arguments from the root caller to the callee. +
-Therefore, the RT-Engine will apply the architecture-specific ABI rules.
-.  We should follow the  architecture-specific ABI in the matter of passing X
-numbers of arguments to `callee`. Above that, arguments will be pushed stack.
-.  Return values to `caller` should also respect the architecture-specific
-ABI rules.
+.  Calls/returns involving an overlay function are handled by the RT-Engine.
+.  If the callee is an overlay function, the RT-Engine will load it into the
+heap before invoking it.
+.  If the caller is an overlay function, the RT-Engine will load it into the
+heap before returning to it.
+.  The RT-Engine must not break the underlying architecture-specific ABI
+(e.g. arguments must be passed according to the ABI, registers used by the
+  RT-Engine must be saved as required by the ABI, and return values must be
+  passed back to the caller in accordance with the ABI)
 
 {nbsp} +
 [[platformframework-hooks]]
