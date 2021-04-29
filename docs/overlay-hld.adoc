@@ -785,8 +785,8 @@ The linker will populate the following output sections:
 requirements document.
   * The first group contains the overlay offset table followed by the multi-group
   table (if multi-groups are present).
-  * Each input section `.ovlinput.*` for each overlay symbol is copied into the
-  group(s) to which it has been assigned.
+  * Each overlay function and data is copied to the group(s) to which it has been
+  assigned.
   * Debug info is associated with whichever group an overlay symbol is placed
   first by the linker. Subsequent groups containing the same overlay symbol do
   not have debug info associated with them.
