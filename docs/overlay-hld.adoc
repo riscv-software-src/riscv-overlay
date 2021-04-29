@@ -849,7 +849,6 @@ addi    t5, t5, 3
 could be relaxed to:
 ```
 addi    t5, zero, 3
-jalr    ra, 0(t6)
 ```
 
 [[Debugger]]
