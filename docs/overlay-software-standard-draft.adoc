@@ -1,9 +1,10 @@
+:toc:
+:sectnums:
+
 = Software Overlay “Software Standard Proposal” Version 0.3-draft-20210429
 
 :doctype: book
-:toc:
 :toclevels: 5
-:sectnums:
 :sectnumlevels: 5
 
 

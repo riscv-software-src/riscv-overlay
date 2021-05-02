@@ -1,13 +1,15 @@
 
+:toc:
+:sectnums:
+
 :counter: image-counter: 0
 :counter: table-counter: 0
 
 = Software Overlay for RISCV - HLD Version 0.4-draft-20210322
 
-:toc:
+
 :doctype: book
 :toclevels: 5
-:sectnums:
 :sectnumlevels: 5
 
 **Revision History**
@@ -193,6 +195,8 @@ A regular address is always an even number. Therefore, to differentiate a token
 address from a standard address, the least significant bit of the address token
 shall be set to 1 (odd).
 
+<<<
+
 [[Overlay-address-token-structure]]
 =====	Overlay address token structure
 The overlay address token is a 32bit value defining a specific overlay function
@@ -200,7 +204,7 @@ as follows –
 
 [[Overlay-token-structure]]
 .Overlay token structure
-[cols="1,1,1,1,11,1", id="Table-{counter:table-counter}"]
+[cols="1,1,1,1,5,1", id="Table-{counter:table-counter}"]
 |===
 >s|*31*
 {set:cellbgcolor:gray}
@@ -328,6 +332,7 @@ That Overlay multi-group table shall contain 4 entries
 are 4 multi-groups with the IDs – 0, 3, 8, 11, and each multi-group
 contains 2, 4, 2, and 3 occurrences of each function, respectively.
 
+
 [[Overlay-Multi-Group-example]]
 .Overlay Multi-Group example
 [cols="1,8", id="Table-{counter:table-counter}"]
@@ -337,23 +342,21 @@ contains 2, 4, 2, and 3 occurrences of each function, respectively.
 ^| *Overlay Multi-Group table*
 ^|0
 {set:cellbgcolor!}
-     ^| Some Address Token footnote:declaimer[Each first entry is the default entry in
+     ^| Some Address Token footnote:[Each first entry is the default entry in
                                     case none of the Address Tokens of a
                                     specific group is loaded]
+
+^|3  ^| Some Address Token
+^|   ^| Some Address Token
+^|   ^| Some Address Token
 ^|   ^| Some Address Token
 ^|   ^| 0
 
-^|3  ^| Some Address Token footnote:declaimer[]
-^|   ^| Some Address Token
-^|   ^| Some Address Token
+^|8  ^| Some Address Token
 ^|   ^| Some Address Token
 ^|   ^| 0
 
-^|8  ^| Some Address Token footnote:declaimer[]
-^|   ^| Some Address Token
-^|   ^| 0
-
-^|11 ^| Some Address Token footnote:declaimer[]
+^|11 ^| Some Address Token
 ^|   ^| Some Address Token
 ^|   ^| Some Address Token
 ^|   ^| 0
@@ -375,7 +378,7 @@ It means the compiler won't use those registers on the register-allocation
 stage. The following registers are being used RT-Engine:
 
 .Reserved registers
-[cols="2,12,2", id="Table-{counter:table-counter}"]
+[cols="3,12,2", id="Table-{counter:table-counter}"]
 |===
 ^|*Register/ABI name*
 {set:cellbgcolor:gray}
@@ -563,7 +566,7 @@ will require moving after standardization.
 
 The new relocations are as follows:
 
-[cols="3*",options="header",]
+[cols="1,5,8",options="header",]
 |==========================================================================
 | Enum | ELF Reloc Type        | Description
 | 220  | R_RISCV_OVL_HI20      | U-type (upper 20-bit) token value
@@ -879,6 +882,8 @@ High level flow diagram]. When the OEBP is hit, the debugger updates its
 overlay mappings by examining the RT-Engine state (this internal update is
 transparent to the user).
 
+<<<
+
 [[Breakpoints]]
 ===== Breakpoints
 
@@ -937,12 +942,3 @@ As a minimum, it is expected that debugger will be able to show return address
 and stack pointer for each frame. The extent to which other registers are shown
 for frames above the RT-Engine depends on the unwinder implementation.
 
-{nbsp} +
-{nbsp} +
-{nbsp} +
-{nbsp} +
-{nbsp} +
-{nbsp} +
-{nbsp} +
-{nbsp} +
-{nbsp} +
