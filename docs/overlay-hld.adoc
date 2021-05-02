@@ -28,7 +28,7 @@
  |Craig Blackmore
  |0.4 |Feb 16,2021| pdf fixups
  |Ofer Shinaar
- |0.5 |may 2,2021| pdf fixups formatting for pdf
+ |0.5 |May 2,2021| pdf fixups formatting for pdf
  |Ofer Shinaar
 |=============================================
 {nbsp} +
