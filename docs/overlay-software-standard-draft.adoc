@@ -1,7 +1,7 @@
 :toc:
 :sectnums:
 
-= Software Overlay “Software Standard Proposal” Version 0.3-draft-20210429
+= Software Overlay “Software Standard Proposal” Version 0.4-draft-20210502
 
 :doctype: book
 :toclevels: 5
@@ -20,14 +20,16 @@
  +
  Craig Blackmore
 |0.2 |Dec 30,2020 | Update changes gathered in the overlay-tg meetings
-|Ofer shinaar
+|Ofer Shinaar
  +
  Craig Blackmore
 |0.3 |Apr 27,2021 |
 * Change file name +
 * Remove RISCV related wording +
 * align adoc syntax
-|Ofer shinaar
+|Ofer Shinaar
+|0.4 |May 2,2021 | Fix syntax for pdf formatting
+|Ofer Shinaar
 |=============================================
 {nbsp} +
 {nbsp} +

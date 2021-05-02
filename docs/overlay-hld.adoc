@@ -5,7 +5,7 @@
 :counter: image-counter: 0
 :counter: table-counter: 0
 
-= Software Overlay for RISCV - HLD Version 0.4-draft-20210322
+= Software Overlay for RISCV - HLD Version 0.5-draft-20210502
 
 
 :doctype: book
@@ -22,11 +22,13 @@
  Ofer Shinaar
  +
  Craig Blackmore
- |0.2 |Feb 03,2021| Toochain compiler 
+ |0.2 |Feb 03,2021| Toochain compiler
  |Craig Blackmore
  |0.3 |Feb 16,2021| Toochain linker and debugger
  |Craig Blackmore
  |0.4 |Feb 16,2021| pdf fixups
+ |Ofer Shinaar
+ |0.5 |may 2,2021| pdf fixups formatting for pdf
  |Ofer Shinaar
 |=============================================
 {nbsp} +
@@ -59,8 +61,8 @@
 [cols="1,6,3,",options="",]
 |========================================
 |Item # |Document |Revision Used |Comment
-|1 |link:riscv-overlay-software-standard-draft.adoc[riscv-overlay-software-standard-draft.adoc]
-   |0.2-draft-20201230| N/A
+|1 |link:overlay-software-standard-draft.adoc[overlay-software-standard-draft.adoc]
+   |0.4-draft-20210520| N/A
 |2 |||
 |========================================
 
@@ -941,4 +943,3 @@ needs translating to a storage address.
 As a minimum, it is expected that debugger will be able to show return address
 and stack pointer for each frame. The extent to which other registers are shown
 for frames above the RT-Engine depends on the unwinder implementation.
-
