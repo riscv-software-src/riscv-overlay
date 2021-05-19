@@ -54,7 +54,7 @@ if not os.path.isdir(Env['RISCV_BINUTILS_TC_PATH']):
 Env['OBJSUFFIX']  = '.o'
 Env['LIBSUFFIX']  = '.a'
 
-Env['ROOT_DIR']     = os.path.join(os.getcwd(), "..", "..")
+Env['ROOT_COMRV_DIR']     = os.path.join(os.getcwd(), "..", "..")
 Env['PUBLIC_INC']   = []
 Env['OUT_DIR_PATH'] = strOutputDirName
 # remove the '#' to enable comrv specific feature
@@ -79,15 +79,15 @@ Env['PUBLIC_DEF']   = [
 	]
 
 listCCOptions = ['-c', '-fcomrv', '-mabi=ilp32', '-g3', '-march=rv32imac', '-mcmodel=medlow']
-Env['C_FLAGS'] = ['-Os', '-ffunction-sections','-fdata-sections','-Wall', '-include', 'sys/cdefs.h'] + listCCOptions
+Env['C_FLAGS'] = ['-Os', '-ffunction-sections','-fdata-sections','-Wall'] + listCCOptions
 Env['A_FLAGS'] = ['-Wall', '-x', 'assembler-with-cpp'] + listCCOptions
 
 if not os.path.exists(Env['OUT_DIR_PATH']):
   os.makedirs(Env['OUT_DIR_PATH'])
   os.makedirs(os.path.join(Env['OUT_DIR_PATH'], 'libs'))
 
-strPathToComrvSConscript = os.path.join(Env['ROOT_DIR'], strComrvDirName, strBuildDirName, strSconscript)
-Env['COMRV_OUT_DIR_BASE'] = os.path.join(Env['ROOT_DIR'], strComrvDirName, strBuildDirName, Env['OUT_DIR_PATH'])
+strPathToComrvSConscript = os.path.join(Env['ROOT_COMRV_DIR'], strComrvDirName, strBuildDirName, strSconscript)
+Env['COMRV_OUT_DIR_BASE'] = os.path.join(Env['ROOT_COMRV_DIR'], strComrvDirName, strBuildDirName, Env['OUT_DIR_PATH'])
 
 Env["Scan"] = False
 # build comrv library

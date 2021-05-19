@@ -36,7 +36,7 @@ listCFiles = [
 # Assembly language source and out files in list of tupples
 # (sourcefile.S, outputfile.o)
 listAssemblyFiles = [
-   (os.path.join('comrv', 'comrv_entry.S'), os.path.join(strOutDir, 'comrv_entry.o')),
+   (os.path.join( 'comrv', 'comrv_entry.S'), os.path.join(strOutDir, 'comrv_entry.o')),
 ]
 
 # compiler directives
@@ -49,10 +49,10 @@ if 'D_RTOSAL' in Env['PUBLIC_DEF']:
 listCompilationDefines = [] + Env['PUBLIC_DEF']
 
 # include paths
-Env['PUBLIC_INC'] += [os.path.join(Env['ROOT_DIR'], 'comrv', 'api_inc'),]
+Env['PUBLIC_INC'] += [os.path.join(Env['ROOT_COMRV_DIR'], 'comrv', 'api_inc'),]
 
 listIncPaths =  [
-  os.path.join(Env['ROOT_DIR'], 'comrv', 'loc_inc'),
+  os.path.join(Env['ROOT_COMRV_DIR'], 'comrv', 'loc_inc'),
 ] + Env['PUBLIC_INC']
 
 
@@ -60,11 +60,11 @@ if not Env["Scan"]:
   # loop the list of c files and compile them
   listObjects = []
   for tplFile in listCFiles:
-    listObjects.append(Env.Object(source=os.path.join(Env['ROOT_DIR'],tplFile[0]), target=tplFile[1], CPPPATH=listIncPaths, CCFLAGS=listCCompilerDirectivs, CPPDEFINES=listCompilationDefines))
+    listObjects.append(Env.Object(source=os.path.join(Env['ROOT_COMRV_DIR'],tplFile[0]), target=tplFile[1], CPPPATH=listIncPaths, CCFLAGS=listCCompilerDirectivs, CPPDEFINES=listCompilationDefines))
 
   # loop the list of assembly files and compile them
   for tplFile in listAssemblyFiles:
-    listObjects.append(Env.Object(source=os.path.join(Env['ROOT_DIR'], tplFile[0]), target=tplFile[1], CPPPATH=listIncPaths, CCFLAGS=listAsimCompilerDirectivs, CPPDEFINES=listCompilationDefines))
+    listObjects.append(Env.Object(source=os.path.join(Env['ROOT_COMRV_DIR'], tplFile[0]), target=tplFile[1], CPPPATH=listIncPaths, CCFLAGS=listAsimCompilerDirectivs, CPPDEFINES=listCompilationDefines))
 
   # for libraries
   objComrvLib = Env.Library (target=os.path.join(Env['COMRV_OUT_DIR_BASE'], 'libs', 'comrv.a'), source=listObjects)
