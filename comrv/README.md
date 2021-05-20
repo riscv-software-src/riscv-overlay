@@ -1,4 +1,10 @@
 
+# Overlay Run-Time engine code
+
+This directory includes the RT-Engine source code, implemented according to the [HLD](https://github.com/riscv/riscv-overlay/blob/master/docs/overlay-hld.adoc)
+Following are instructions for building it.
+
+
 # Prerequisites
 
 - Install scons build system (for Debian OS)
@@ -8,7 +14,7 @@
 - Toolchain 
   - You can download the latest LLVM toolchain (executables) here:   [LLVM-Debian download link](https://wdc.box.com/s/hqign6gmlzojoxevbzv5xi62li3igple)
   - The toolchain build includes `binutils-gdb` changes needed for the Overlay engine build/link and support.
-  - Alternatively you can build it yourself, please check section [Build llvm](#build-llvm)   
+  - Alternatively you can build it yourself, please check section [Build overlay toolchain](#Build-overlay-toolchain)   
 
 
 # Configure comrv build
@@ -18,9 +24,9 @@ To change these flags open the file  ```./build/SConstruct``` and comment/uncomm
 
 # Build comrv library
     $ cd build
-    $ scons llvmpath=<path-to-llvm-directory> gccpath=<path-to-gcc-directory>
+    $ scons llvmpath=<path-to-overlay-llvm-installed-directory> gccpath=<path-to-overlay-gcc-installed-directory>
     
-# Build llvm
+# Build overlay toolchain
 - The active development repo can be found in this link [llvm-project](https://github.com/westerndigitalcorporation/llvm-project/tree/comrv)
   Follow instructions to build llvm with Overlay support.
 - You will need to build `binutils-gdb` as well to be used for link and debug.
@@ -32,4 +38,3 @@ To change these flags open the file  ```./build/SConstruct``` and comment/uncomm
   branch=comrv-devel
   hash=f456f6d03fe702d6190a63d035566a935fba95db
   ```
-  
