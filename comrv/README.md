@@ -26,6 +26,10 @@ To change these flags open the file  ```./build/SConstruct``` and comment/uncomm
 - You will need to build `binutils-gdb` as well to be used for link and debug.
   It's advised to build the entry GNU toolchain from this link [riscv-gnu-toolchain](https://github.com/westerndigitalcorporation/riscv-gnu-toolchain/tree/comrv-devel)
 
-        url=https://github.com/westerndigitalcorporation/riscv-gnu-toolchain.git
-        branch=comrv-devel
-        hash=f456f6d03fe702d6190a63d035566a935fba95db
+  Build description:
+  ```
+  url=https://github.com/westerndigitalcorporation/riscv-gnu-toolchain.git
+  branch=comrv-devel
+  hash=f456f6d03fe702d6190a63d035566a935fba95db
+  ```
+  
