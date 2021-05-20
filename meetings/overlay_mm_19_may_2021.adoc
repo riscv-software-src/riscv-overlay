@@ -1,0 +1,79 @@
+== General summary
+* Meeting presentation was promoted to github:
+https://github.com/riscv/riscv-overlay/tree/master/meetings
+
+=== Github status
+* PR for overlay engine will be promoted in few days
+* Issue #13 - Craig B. will reply back
+
+=== New ABI
+** Since we allocate registers, we shared two options for solving the problem
+with ABI. We are preferring the option to use a generic mechanism for specifying
+reserve registers ``e.g. mabi=ilp32_x31_x30_x29_x28 to reserve x31-x28 ``
+We think that other implementations can use this concept if they don't want
+to have a new ABI flavor.
+Craig to promote it on psABI mailing list.
+
+=== Action items from code-size meeting
+* Tech-j-ext - We did not find any overlapping usage or instructions that we can
+leverage from j-ext efforts.
+* Plt - we explained how using plt will have a big impact on overlay performance
+in such a way that it will not be usable. We will promote a psudo flow that
+estimates the IPC when doing table jumps instead of reserved registers design
+
+* Interrupts
+** we explain that overlay may work with interrupts; there is no restriction on
+the engine design, with one caveat, for interrupt vector, we need to route all
+entries to one place to handle the entry to the engine. This overhead on the
+interrupt vector will suppress the benefits of a vector interrupts concept.
+Since there is no involvement of the engine here (all is at the application
+level) there is nothing to modify.
+** We need to check if there conflicts on the toolchain side on using
+ *interrupt* and *overlay* attributes (Craig B. to check it out)
+
+* HLD updates
+** i$/d$ - since the overlay is agnostic to the platform it is running on,
+the invalidate of i$/d$ should be part of the *_load hook_*, which is provided
+to the application. Only the application knows if the cache needs to be
+invalidated after it loads the code to the overlay-cache-area
+
+** Virtual memory - We will add to HLD that the application should be aware of
+how to initialize the overlay engine on an MMU-based platform.
+The inputs to the engine init are the *storage* area and *cache* area.
+The MMU can not manage those two due to the fact that the Overlay engine should
+manage those memories.
+Note: Overlay is a solution for a low memory platform; one can say that overlay
+is an SW MMU. There is no much of a sense to put SW Overlay on an MMU platform.
+
+** Need to mention that SW Overlay implementation only needs rv32i but can
+leverage from *b* and *zce* to get better code and better performance on the
+engine implementation
+
+
+== Action items
+* Need to engaged psABI regarding a)allocation of relocation numbers. b)our
+solution for the reserved register, generic solution instead of new ABI
+
+* Working with FOSSI to be our new home, we will keep everyone posted on the
+progress.
+
+== Still pending:
+* We need to search for a root repo for the Engine FW. We think to combine it
+with the toolchain build-system or other options
+(we discuses `Newlib`, but don't think it is a valid/correct option))
+
+* Inputs from Michael E. the current concept is based on the relative between
+the "storage" and the "heap", can we think of a different approach of "altering"
+symbols on runtime so they won't be relative to the heap?
+
+** The question related to how code that references absolute addresses could be
+handled while avoiding having to rewrite addresses at runtime.
+
+** Without seeing the use case, it is assumed that this relates to some code
+that jumps to or loads from an absolute address, but that absolute address
+is in an overlay.
+
+
+
+{nbsp}
+_
