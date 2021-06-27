@@ -5,7 +5,7 @@
 :counter: image-counter: 0
 :counter: table-counter: 0
 
-= Software Overlay for RISCV - HLD Version 0.5-draft-20210502
+= Software Overlay for RISCV - HLD Version 0.6-draft-20210519
 
 
 :doctype: book
@@ -29,6 +29,9 @@
  |0.4 |Feb 16,2021| pdf fixups
  |Ofer Shinaar
  |0.5 |May 2,2021| pdf fixups formatting for pdf
+ |Ofer Shinaar
+ |0.6 |May 19,2021| add comments for: a)This design support only rv32 arch
+ b)The design does not support overlay ISR's
  |Ofer Shinaar
 |=============================================
 {nbsp} +
@@ -161,13 +164,13 @@ referring a fixed address in memory.
 [[Implicit-RT-Engine-invocation]]
 ====	Implicit RT Engine invocation
 Since the linker can’t resolve the actual address of the overlay function bar(),
- and it does know the address of the RT Engine entry point, the compiler shall
- plant a ‘jump’ instruction to the RT Engine entry point instead of a ‘jump’
- to bar(). To distinguish which overlay function is to be loaded and invoked,
- the linker will use an address token defining the bar() overlay function
- instead of the actual bar() address. Sharing a token will allow the RT Engine
- to prepare (load/invoke) the correct overlay group in memory along with the
- bar() function offset within the overlay group.
+and it does know the address of the RT Engine entry point, the compiler shall
+plant a ‘jump’ instruction to the RT Engine entry point instead of a ‘jump’
+to bar(). To distinguish which overlay function is to be loaded and invoked,
+the linker will use an address token defining the bar() overlay function
+instead of the actual bar() address. Sharing a token will allow the RT Engine
+to prepare (load/invoke) the correct overlay group in memory along with the
+bar() function offset within the overlay group.
 
 
 .Overlay operation example
@@ -475,6 +478,10 @@ and x4 is pointing to it.
 <<<
 [[RT-Engine]]
 === RT Engine
+The overlay engine designed to work only on 32bit system; therefore, the primary
+need is *rv32i*.
+Other extensions, such as *b*, *Zce* can be used to improve the size and
+performance of the engine itself.
 
 [[High-level-flow]]
 ====	High-level flow
@@ -538,6 +545,20 @@ from callee to the caller, we first return to the RT-Engine to load the caller
 if it was evicted. Due to this paradigm, we need to save the caller's return
 address, and it’s token, so the RT-Engine can load it if needed.
 
+[[Interrupts]]
+====	Interrupts
+There are two reasons why Overlay ISR are not supported:
+
+. The fact that interrupt latency will increase makes this feature negligible 
+for small strict RT systems that use Overlays.
+
+. On vector mode, it will make the design more complex. Each entry in the vector
+will need to be redirected to a main-manage function. Which will call the
+engine with a giving token that presenting the ISR we want to serve.
+This overhead will suppress the benefits of a vector interrupts concept.
+
+Besides those two reasons, there is no limitation on implementing overlay
+as an ISR.
 
 <<<
 [[Toolchain]]
