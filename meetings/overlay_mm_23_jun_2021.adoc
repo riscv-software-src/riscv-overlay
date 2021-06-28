@@ -1,0 +1,58 @@
+== General summary
+* Meeting presentation was promoted to github:
+https://github.com/riscv/riscv-overlay/tree/master/meetings
+
+=== Github status
+* Issue #13 - We provide answers for the issue, we will close the issue if
+no reply by the end of June.
+
+=== New ABI
+On the last https://github.com/riscv-admin-docs/psabi/blob/master/MINUTES/meeting-20210614.adoc[*psABI meeting*^,role=green]
+The idea of a generic approach for reserving registers was preferred over
+explicitly defining new overlay ABIs.
+
+Adding the registers to `-mabi` e.g. `-mabi=ilp32_x31_x30_x29_x28 to reserve
+x31-x28` was seen as too invasive. A new ELF attribute will be added to record
+the reserved register set. Kito (psABI chair) will make a proposal for the new
+attribute.
+
+=== Code-size-tg - table jump
+We raised a question regarding possible overlap between new instruction `tblj`
+and overlay entry to RT-Eng and for RT-Eng jumping to loaded to cache function.
+Assuming the `tblj` will be materialized at link time, we don't think there
+will be any overlaps between `tblj` and overlay.
+To close this issue, Tariq (Chair for Code-size-tg) will set a meeting with the
+engineer that will implement 'tblj' and the members from overlay-tg.
+
+=== Road map and status
+* *Fossi* is going to be our new home.
+* Overlay standard will port to *Fossi*
+* Starting patches submission for: llvm, binutils, gdb (by that order)
+
+== Round table
+* Q: *shadow stack*: Any possible impact on the reserve register solution?
+* A: [Simon Cook] mentioned that it is not expected to overlap (though register
+pressure is a real possibility).
+Simon C. will double-check that the *shadow stack* is not conflicting overlay
+changes.
+
+== Still pending:
+* We need to search for a root repo for the Engine FW. We think to combine it
+with the toolchain build-system or other options
+(we discuses `Newlib`, but don't think it is a valid/correct option))
+
+* Inputs from Michael E. the current concept is based on the relative between
+the "storage" and the "heap", can we think of a different approach of "altering"
+symbols on runtime so they won't be relative to the heap?
+
+** The question related to how code that references absolute addresses could be
+handled while avoiding having to rewrite addresses at runtime.
+
+** Without seeing the use case, it is assumed that this relates to some code
+that jumps to or loads from an absolute address, but that absolute address
+is in an overlay.
+
+
+
+{nbsp}
+_
