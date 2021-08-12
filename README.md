@@ -5,7 +5,7 @@
 </p>
  
 The repostority contains:
-- Draft proposal for the SW standard [RISC-V Overlay “Software Standard proposal"](/docs/riscv-overlay-software-standard-draft.adoc)
+- Draft proposal for the SW standard [“Overlay Software Standard proposal"](/docs/overlay-software-standard-draft.adoc)
 - [RT Engine Implementation](/comrv)
 - [High Level Design](/docs/overlay-hld.adoc)
 - Toolchain github links (future TBD)
