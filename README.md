@@ -5,10 +5,15 @@
 </p>
  
 The repostority contains:
-- Draft proposal for the SW standard [“Overlay Software Standard proposal"](/docs/overlay-software-standard-draft.adoc)
+
 - [RT Engine Implementation](/comrv)
 - [High Level Design](/docs/overlay-hld.adoc)
-- Toolchain github links (future TBD)
+- Toolchain github patches:
+-- [llvm](https://github.com/westerndigitalcorporation/llvm-project/tree/comrv)
+-- binutils (TBD)
+
+The implemantion is based on [“Overlay Software Standard proposal"](https://github.com/fossi-foundation/embedded-sw-overlay/tree/master/docs)
+From FOSSI
 
 Follow `meeting minutes` and status at [tech-overlay task group](https://lists.riscv.org/g/tech-overlay) and/or in [docs](/docs) folder.
 
