@@ -9,8 +9,9 @@ The repostority contains:
 - [RT Engine Implementation](/comrv)
 - [High Level Design](/docs/overlay-hld.adoc)
 - Toolchain github patches:
--- [llvm](https://github.com/westerndigitalcorporation/llvm-project/tree/comrv)
--- binutils (TBD)
+  - [llvm link](https://github.com/westerndigitalcorporation/llvm-project/tree/comrv)
+  - binutils link (TBD)
+  - gdb link (TBD)
 
 The implemantion is based on [“Overlay Software Standard proposal"](https://github.com/fossi-foundation/embedded-sw-overlay/tree/master/docs)
 From FOSSI
