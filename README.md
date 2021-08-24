@@ -13,7 +13,7 @@ The repostority contains:
   - binutils link (TBD)
   - gdb link (TBD)
 
-The implemantion is based on [“Overlay Software Standard proposal"](https://github.com/fossi-foundation/embedded-sw-overlay/tree/master/docs)
+The implementation is based on [“Overlay Software Standard proposal"](https://github.com/fossi-foundation/embedded-sw-overlay/tree/master/docs)
 From FOSSI
 
 Follow `meeting minutes` and status at [tech-overlay task group](https://lists.riscv.org/g/tech-overlay) and/or in [docs](/docs) folder.
