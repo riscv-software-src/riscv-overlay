@@ -1,0 +1,51 @@
+== General summary
+Meeting presentation was promoted to github:
+https://github.com/riscv/riscv-overlay/tree/master/meetings
+
+=== Github status
+"SW overlay standard" ported to
+https://github.com/fossi-foundation/embedded-sw-overlay[FOSSi]
+
+=== Overlay FW Engine repo
+We promoted a question to the forum: should the FW Eng be part of the toolchain
+(e.g., as *lib* or source in the "newlib" ), or should it be in its own
+repository as it is now?
+
+* The question was raised since some vendors will want the Overlay toolchain
+support tightly coupled with the FW eng.
+* The forum chooses to keep the FW Eng source code in its own repository
+with reference to where it can be located.
+* The current FW Eng is for RISCV only; when the TG will be complete its
+mission, the code will move to
+https://github.com/fossi-foundation/embedded-sw-overlay[FOSSi]
+and will be referenced from there.
+
+
+=== Next - GNU patches
+Binuilts is prepared for submission, estimate to be published in a few weeks
+GDB preparation for submission will start after Binuilts
+
+
+
+=== Road map and status
+* LLVM full repo change are ready in:
+https://github.com/westerndigitalcorporation/llvm-project/tree/comrv[comrv]
+* Will push to *_LLVM Phabricator_* in a few days.
+* FW Eng to that support RTOS (FreeRTOS) will come in later stages.
+
+== Still pending:
+* Inputs from Michael E. the current concept is based on the relative between
+the "storage" and the "heap", can we think of a different approach of "altering"
+symbols on runtime so they won't be relative to the heap?
+
+** The question related to how code that references absolute addresses could be
+handled while avoiding having to rewrite addresses at runtime.
+
+** Without seeing the use case, it is assumed that this relates to some code
+that jumps to or loads from an absolute address, but that absolute address
+is in an overlay.
+
+
+
+{nbsp}
+_
