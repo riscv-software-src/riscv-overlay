@@ -45,7 +45,7 @@ listAsimCompilerDirectivs = [] + Env['A_FLAGS']
 
 # compilation defines (-D_)
 if 'D_RTOSAL' in Env['PUBLIC_DEF']:
-  Env['PUBLIC_DEF'] += ['D_COMRV']
+  Env['PUBLIC_DEF'] += ['D_RESERVE_REGS_29_31']
 listCompilationDefines = [] + Env['PUBLIC_DEF']
 
 # include paths
