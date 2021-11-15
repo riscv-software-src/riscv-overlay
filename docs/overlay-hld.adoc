@@ -603,6 +603,24 @@ The new relocations are as follows:
 | 225  | R_RISCV_OVLPLT32      | 32-bit overlay plt entry address
 |==========================================================================
 
+===== Assembler syntax
+
+To write assembly which generates the overlay relocations additional
+modifiers are needed which can be applied to symbols. Below are examples
+of the syntax for the new modifiers and the relocaitons which will be
+generated:
+
+[cols="6,8",options="header",]
+|==========================================================================
+| Syntax                           | Generated relocation
+| lui  t5, %ovltok_hi(symbol)      | R_RISCV_OVLTOK_HI20
+| addi t5, %ovltok_lo(symbol)(t5)  | R_RISCV_OVLTOK_LO12_I
+| lui  t0, %ovlplt_hi(symbol)      | R_RISCV_OVLPLT_HI20
+| addi t0, %ovlplt_lo(symbol)(t0)  | R_RISCV_OVLPLT_LO12_I
+| .word symbol@ovltok              | R_RISCV_OVLTOK32
+| .word symbol@ovlplt              | R_RISCV_OVLPLT32
+|==========================================================================
+
 ===== Input sections
 
 The compiler places overlay functions or data in their own sections so that they
@@ -646,7 +664,20 @@ int main() {
   return 0;
 }
 ```
-`main` compiles and assembles to:
+`main` compiles to:
+```
+main:
+        addi    sp, sp, -16
+        sw      ra, 12(sp)
+        lui     t5, %ovltok_hi(f1)
+        addi    t5, t5, %ovltok_lo(f1)
+        jalr    t6
+        mv      a0, zero
+        lw      ra, 12(sp)
+        addi    sp, sp, 16
+        ret
+```
+and after assembly:
 ```
 Disassembly of section .text:
 
@@ -695,7 +726,7 @@ void __attribute__((overlaycall)) f2() {
   globalCount += 2;
 }
 
-void __attribute__((overlaycall)) (*fptr)();
+void (*fptr)();
 
 void set_fptr() {
   fptr = f2;
@@ -706,7 +737,27 @@ int main() {
   return 0;
 }
 ```
-`main` and `set_fptr` compile and assemble to:
+`main` and `set_fptr` compile to:
+```
+set_fptr:
+        lui     a0, %ovlplt_hi(f2)
+        addi    a0, a0, %ovlplt_lo(f2)
+        lui     a1, %hi(fptr)
+        sw      a0, %lo(fptr)(a1)
+        ret
+
+main:
+        addi    sp, sp, -16
+        sw      ra, 12(sp)
+        lui     a0, %hi(fptr)
+        lw      a0, %lo(fptr)(a0)
+        jalr    a0
+        mv      a0, zero
+        lw      ra, 12(sp)
+        addi    sp, sp, 16
+        ret
+```
+and after assembly:
 ```
 00000000 <set_fptr>:
    0: 00000537            lui a0,0x0
