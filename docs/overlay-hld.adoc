@@ -595,9 +595,9 @@ The new relocations are as follows:
 [cols="1,5,8",options="header",]
 |==========================================================================
 | Enum | ELF Reloc Type        | Description
-| 220  | R_RISCV_OVL_HI20      | U-type (upper 20-bit) token value
-| 221  | R_RISCV_OVL_LO12_I    | I-type (lower 12-bit) token value
-| 222  | R_RISCV_OVL32         | 32-bit overlay token value
+| 220  | R_RISCV_OVLTOK_HI20   | U-type (upper 20-bit) token value
+| 221  | R_RISCV_OVLTOK_LO12_I | I-type (lower 12-bit) token value
+| 222  | R_RISCV_OVLTOK32      | 32-bit overlay token value
 | 223  | R_RISCV_OVLPLT_HI20   | U-type (upper 20-bit) overlay plt address
 | 224  | R_RISCV_OVLPLT_LO12_I | I-type (lower 12-bit) overlay plt address
 | 225  | R_RISCV_OVLPLT32      | 32-bit overlay plt entry address
@@ -654,9 +654,9 @@ Disassembly of section .text:
    0:   1141                    addi    sp,sp,-16
    2:   c606                    sw      ra,12(sp)
    4:   00000f37                lui     t5,0x0
-                        4: R_RISCV_OVL_HI20     f1
+                        4: R_RISCV_OVLTOK_HI20     f1
    8:   000f0f13                mv      t5,t5
-                        8: R_RISCV_OVL_LO12_I   f1
+                        8: R_RISCV_OVLTOK_LO12_I   f1
    c:   000f80e7                jalr    t6
   10:   4501                    li      a0,0
   12:   40b2                    lw      ra,12(sp)
