@@ -581,7 +581,7 @@ The `-moverlay` flag enables overlay support in the compiler. Specifically,
 this flag:
 
 * Reserves the registers required by the RT-Engine.
-* Enables the use of attributes `overlaycall` and `overlaydata`.
+* Enables the use of attributes `overlay_call` and `overlay_data`.
 
 ===== Relocations
 
@@ -647,7 +647,7 @@ convention when moving between overlay and non-overlay functions.
 [[direct-call]]
 *Direct call*
 
-For a call to an overlay function (i.e. callee has attribute `overlaycall`),
+For a call to an overlay function (i.e. callee has attribute `overlay_call`),
 the compiler must load the callee token into `t5` and then jump and link to the
 RT-Engine entry point via `t6`.
 
@@ -655,7 +655,7 @@ For example, for the following code:
 ```
 int globalCount;
 
-void __attribute__((overlaycall)) f1() {
+void __attribute__((overlay_call)) f1() {
   globalCount += 3;
 }
 
@@ -712,7 +712,7 @@ and after linking:
 *Indirect call*
 
 For an indirect call to an overlay function (i.e. callee has attribute
-`overlaycall`), the function pointer will contain the address of an entry in the
+`overlay_call`), the function pointer will contain the address of an entry in the
 overlay procedure linkage table (`.ovlplt`). A call via this function pointer
 will jump to the entry in the `.ovlplt` which will then load the overlay
 function token into `t5` and jump and link to the RT-Engine entry point via
@@ -722,7 +722,7 @@ For example, for the following code:
 ```
 int globalCount;
 
-void __attribute__((overlaycall)) f2() {
+void __attribute__((overlay_call)) f2() {
   globalCount += 2;
 }
 
@@ -815,16 +815,16 @@ No special handling is required by the compiler.
 
 ===== Overlay data
 
-RO data can be marked as overlay with the `overlaydata` attribute, for example:
+RO data can be marked as overlay with the `overlay_data` attribute, for example:
 ```
-__attribute__((overlaydata)) const int foo;
+__attribute__((overlay_data)) const int foo;
 ```
 
 Overlay data `foo` will be placed in `.ovlinput.foo`.
 
 ===== Constraints
 
-* Static functions/data cannot be marked as `overlaycall`/`overlaydata` (this
+* Static functions/data cannot be marked as `overlay_call`/`overlay_data` (this
 does not include class-static symbols), doing so will produce a compiler error.
 
 * The compiler will not inline overlay functions.
