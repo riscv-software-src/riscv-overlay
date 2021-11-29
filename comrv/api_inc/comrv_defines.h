@@ -36,8 +36,8 @@
 #define D_COMRV_USED       __attribute__((used))
 #define D_COMRV_INLINE     static inline __attribute__((always_inline))
 #define D_COMRV_NO_INLINE  __attribute__((noinline))
-#define _OVERLAY_          __attribute__((overlaycall))
-#define _DATA_OVERLAY_     __attribute__((overlaydata))
+#define _OVERLAY_          __attribute__((overlay_call))
+#define _DATA_OVERLAY_     __attribute__((overlay_data))
 
 #define D_COMRV_NUM_OF_CACHE_ENTRIES      (D_COMRV_OVL_CACHE_SIZE_IN_BYTES/D_COMRV_OVL_GROUP_SIZE_MIN)
 
