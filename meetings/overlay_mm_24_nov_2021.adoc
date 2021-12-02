@@ -7,10 +7,9 @@ https://github.com/riscv/riscv-overlay/tree/master/meetings
 === Submission status update
 * LLVM/Clang
 ** We received feedback on our patches and responded with fixes accordingly.
-** We have submitted a patch to ELF attribute for allocating registers
-*** We sent an email to psABI TG to be aware of our change.
-*** The TG requested to review the implementation before entering the officially
-psABI version.
+** We have submitted a patch to implement the reserved register ELF attribute
+and shared this on the corresponding psABI PR that documents the attribute.
+*** The TG requested to review the implementation before adding to the psABI.
 
 * GNU
 ** BFD - work in prog
@@ -27,7 +26,7 @@ fix and merges, closing the issue
 
 === Road map and status
 * GNU patches are incoming.
-* FW Eng to that support RTOS (FreeRTOS) will come in later stages.
+* FW Eng that support RTOS (FreeRTOS) will come in later stages.
 
 
 [NOTE]
