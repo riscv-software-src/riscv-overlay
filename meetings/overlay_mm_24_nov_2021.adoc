@@ -1,0 +1,37 @@
+== General summary
+Meeting presentation was promoted to github:
+https://github.com/riscv/riscv-overlay/tree/master/meetings
+
+
+
+=== Submission status update
+* LLVM/Clang
+** We received feedback on our patches and responded with fixes accordingly.
+** We have submitted a patch to implement the reserved register ELF attribute
+and shared this on the corresponding psABI PR that documents the attribute.
+*** The TG requested to review the implementation before adding to the psABI.
+
+* GNU
+** BFD - work in prog
+** GDB - work in prog; we may need to break the patch into several patches
+
+=== Github
+* Reported issues
+** Issue 28 - overlay attributes in the compiler (overlaycall, overlaydata)
+ need testing and verification before closing
+** Issue 29 -Names of relocations used by the overlay system
+Still open need a PR for the change.
+** Issue 30 - Include section in high level document for assembler syntax
+fix and merges, closing the issue
+
+=== Road map and status
+* GNU patches are incoming.
+* FW Eng that support RTOS (FreeRTOS) will come in later stages.
+
+
+[NOTE]
+The next meeting is close to Christmas and could be postponed; we will give
+notification on the mailing list.
+
+{nbsp}
+_
