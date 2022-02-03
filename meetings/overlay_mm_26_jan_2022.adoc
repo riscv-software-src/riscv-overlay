@@ -1,0 +1,67 @@
+== General summary
+Meeting presentation was promoted to
+github https://github.com/riscv-software-src/riscv-overlay/blob/926eefdf2d886c3bd7f648fc345f58447098f6fe/meetings/overlay%20meeting%20slides%2020210623.pdf[overlay meeting slides 20210623.pdf]
+
+
+
+
+=== Submission status update
+* LLVM/Clang
+** *Overlay patches match latest changes to the HLD*
+** *Patch submitted to add new reserved register ELF attribute*
+*** psABI created a
+https://github.com/riscv-non-isa/riscv-elf-psabi-doc/pull/195[PR New attribute: Tag_RISCV_reserved_register #195]
+We are waiting for the next psABI meeting to sync with Anders Berg
+(helper functions).
+At this meeting, we talked about Anders's idea for "helper functions";
+we agreed that we would need the reserved registers with/without helper
+functions; therefore, the idea of "helper functions" should not block the PR
+OS to share details with Kito (psABI PR #195), hopefully,
+to continue with the PR
+
+
+
+* GNU
+** *Binutils  - work in prog*
+*** BFD refactoring is almost completed; we target to have the patch ready this
+month.
+** *GDB - work in prog*
+*** We elaborated that we have a working and tested solution being refactored 
+for upstreaming.
+The implementation includes a new overlay manager
+class to allow the existing GDB overlay support to be maintained and different
+overlay systems like RISC-V's to be supported.
+
+=== Github
+* Reported issues/PRs
+** Issue 28 - Testings are completed. Waiting for toolchain merges to
+build a new toolchain and release new Overlay Engine.
+** Issue 29 - PR merged. The issue was closed
+** Issue 30 - PR merged. The issue was closed
+
+=== Open table
+* Helper functions - by Anders Berg
+
+Anders elaborated on his idea for "helper functions", which is the same concept
+as helper functions for the ARM compiler.
+
+Anders is currently working on this solution for the psABI.
+The suggestion is that the overlay engine will use a new prefix such
+as *__rvoabi__*.
+With helper functions, we can distinguish between library functions that were
+implemented differently to work with overlays.
+
+Anders mentioned that helper functions should not be overlaid due to the impact
+on performance. We explained that functions are non-overlay by default and are
+only made overlay if they have the overlay_call attribute (thus, we target the
+user coding space).
+
+If we go with the "helper function" concept, we can add the new prefix to
+the RT-Engine; that is not a toolchain issue. But we still need a way to reserve
+registers generically with link-time checking, which is addressed by
+https://github.com/riscv-non-isa/riscv-elf-psabi-doc/pull/195[PR-195] on psABI.
+
+.
+
+{nbsp}
+_
