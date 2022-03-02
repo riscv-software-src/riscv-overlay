@@ -1,0 +1,57 @@
+== General summary
+Meeting presentation was promoted to
+github https://github.com/riscv-software-src/riscv-overlay/blob/master/meetings/overlay%20meeting%20slides%2020220223.pdf[overlay meeting slides 20220223.pdf]
+
+
+
+
+=== Submission status update
+* LLVM/Clang
+** *Overlay patches match latest changes to the HLD*
+** *Patch submitted to add new reserved register ELF attribute*
+*** psABI created a
+https://github.com/riscv-non-isa/riscv-elf-psabi-doc/pull/195[PR New attribute: Tag_RISCV_reserved_register #195]
+We agree that this PR is not related to Overlay and not related to
+"Helper functions" although it can assist in protecting the helper functions
+from bad usage of -ffixed-reg. We are still waiting for review and merging.
+
+
+
+* GNU
+** *Binutils  - work in prog*
+*** BFD refactoring is almost completed; we target to have the patch ready this
+month.
+
+** *GDB - work in prog*
+*** Targeting submission before next meeting (last week of March)
+
+=== Reopend conversation - ABI for overlay ?
+* We shared our points from the mailing list (can also be found on the meeting
+  slides).
+* New ABI and "Help function" got mixed in the conversation on the mailing list;
+we cleared that up.
+
+=== Discussion about "Helper functions"
+
+* Anders explains that many "Helper functions" will allocate many temp regs.
+Those will be written in ASM, so they may clash with registers saved by the
+Overlay engine (even if it's by -ffixed-reg)
+* Anders mentioned that the goal is that "Helper functions" will be a mandatory
+option across RISCV toolchains.
+* Due to this fact, the Overlay toolchain will need to encapsulate its own
+implementation of "Helper functions" but those can be "stubs" if we choose so.
+
+* https://github.com/riscv-non-isa/riscv-elf-psabi-doc/pull/195[PR New attribute: Tag_RISCV_reserved_register #195]
+is not related to "Helper functions" nor to Overlay (although we need it);
+nothing here is subjective, and we did not detect blockers for continuing with
+this after psABI 1.0 is released.
+* We agree we don't want Overlay to enforce rules for "not using" specific ABIs
+(e.g. eabi); it can work on any... even if it does not make any sense.
+We will wait for the "Helper functions" documented by Anders berg.
+Once the "Helper functions" spec will be a fact for ABI we will patch Overlay
+with the new rules.
+
+
+
+{nbsp}
+_
