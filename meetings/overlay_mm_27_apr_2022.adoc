@@ -1,0 +1,33 @@
+== General summary
+Meeting presentation was promoted to
+github https://github.com/riscv-software-src/riscv-overlay/blob/master/meetings/overlay%20meeting%20slides%2020220427.pdf[overlay meeting slides 20220427.pdf]
+
+
+
+=== Submission status update
+* LLVM/Clang
+** Patches are under review:
+*** Overlay patches match latest changes to the HLD
+{nbsp} +
+https://reviews.llvm.org/D109371
+{nbsp} +
+https://reviews.llvm.org/D109372
+
+*** reserved register ELF attribute
+{nbsp} +
+https://reviews.llvm.org/D113890
+
+
+* GNU
+** *Binutils  - work in prog*
+*** BFD refactoring is completed and patch was submitted
+https://sourceware.org/pipermail/binutils/2022-April/120509.html
+
+
+** *GDB - work in prog*
+*** Will be submitted in few phases, during the start of May/2022
+
+
+
+{nbsp}
+_
